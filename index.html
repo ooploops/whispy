@@ -216,6 +216,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
       height: 100%;
       min-height: 0;
       flex: 1 1 auto;
+      position: relative;
     }
     .sidebar.collapsed ~ .main .chat {
       width: 100vw !important;
@@ -232,6 +233,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
       scroll-behavior: smooth;
       max-width: 100%;
       height: 100%;
+      /* Ensure messages are behind sticky composer */
     }
     .sidebar.collapsed ~ .main .messages {
       max-width: 100vw !important;
@@ -272,7 +274,17 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green)); transition: width .25s ease; border-radius: 2px; }
 
     /* COMPOSER */
-    .composer { padding: 14px clamp(12px, 3vw, 24px); background: var(--glass); backdrop-filter: var(--blur); border-top: 1px solid var(--border-subtle); }
+    .composer {
+      padding: 14px clamp(12px, 3vw, 24px);
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border-top: 1px solid var(--border-subtle);
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+    }
     .composer-input { display:flex; align-items:flex-end; gap: 10px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 12px 14px; }
     .composer-input:focus-within { border-color: var(--accent-blue); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent-blue) 18%, transparent); }
     .message-input {
@@ -600,10 +612,19 @@ function appendSys(text) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-function appendMsg(text, mine = false, username = null, timestamp = null) {
-  // If this is an incoming message and username is present, update peerProfile.name
-  if (!mine && username && peerProfile.name !== username) {
-    peerProfile.name = username;
+function appendMsg(text, mine = false, username = null, timestamp = null, avatar = null) {
+  // If this is an incoming message, update peerProfile name and avatar if present
+  if (!mine) {
+    if (username && peerProfile.name !== username) {
+      peerProfile.name = username;
+    }
+    if (avatar && peerProfile.avatar !== avatar) {
+      peerProfile.avatar = avatar;
+    }
+    // If avatar is missing, use default
+    if (!peerProfile.avatar) {
+      peerProfile.avatar = 'https://picsum.photos/seed/placeholder/96';
+    }
     updateContactStrip();
   }
   const d = document.createElement('div');
@@ -833,7 +854,10 @@ function onData(data) {
   if (typeof data === 'string') {
     let msg; try { msg = JSON.parse(data); } catch { return; }
     switch (msg.type) {
-      case 'text': appendMsg(msg.text, false, msg.username, msg.timestamp); break;
+      case 'text':
+        // Pass avatar if present, else fallback to peerProfile.avatar
+        appendMsg(msg.text, false, msg.username, msg.timestamp, msg.avatar || peerProfile.avatar);
+        break;
       case 'fileStart': handleFileStart(msg); break;
       case 'fileEnd': handleFileEnd(msg); break;
       case 'profile': handleProfile(msg); break;
@@ -866,8 +890,8 @@ function handleFileEnd() {
 
 function sendText() {
   const text = textInput.value.trim(); if (!text || !conn) return;
-  conn.send(JSON.stringify({ type:'text', text, username: currentUsername, timestamp: getTimestamp() }));
-  appendMsg(text, true, currentUsername);
+  conn.send(JSON.stringify({ type:'text', text, username: currentUsername, timestamp: getTimestamp(), avatar: myAvatarUrl }));
+  appendMsg(text, true, currentUsername, null, myAvatarUrl);
   textInput.value = ''; textInput.style.height = 'auto';
 }
 
