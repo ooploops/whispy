@@ -618,12 +618,15 @@ function appendMsg(text, mine = false, username = null, timestamp = null, avatar
     if (username && peerProfile.name !== username) {
       peerProfile.name = username;
     }
+    // If avatar is present, use it. Otherwise, assign a random avatar seed if not already set.
     if (avatar && peerProfile.avatar !== avatar) {
       peerProfile.avatar = avatar;
-    }
-    // If avatar is missing, use default
-    if (!peerProfile.avatar) {
-      peerProfile.avatar = 'https://picsum.photos/seed/placeholder/96';
+    } else if (!peerProfile.avatar || peerProfile.avatar === 'https://picsum.photos/seed/placeholder/96') {
+      if (!peerProfile._seed) {
+        // Generate a random seed for this peer for this session
+        peerProfile._seed = Math.random().toString(36).slice(2);
+      }
+      peerProfile.avatar = `https://picsum.photos/seed/${encodeURIComponent(peerProfile._seed)}/96`;
     }
     updateContactStrip();
   }
@@ -868,7 +871,17 @@ function onData(data) {
 
 function handleProfile(msg) {
   // Update the remote contact card + header
-  peerProfile = { name: msg.name || 'Guest', avatar: msg.avatar || 'https://picsum.photos/seed/peer/200' };
+  peerProfile.name = msg.name || 'Guest';
+  if (msg.avatar) {
+    peerProfile.avatar = msg.avatar;
+    peerProfile._seed = undefined;
+  } else {
+    // Assign a random seed if not already set
+    if (!peerProfile._seed) {
+      peerProfile._seed = Math.random().toString(36).slice(2);
+    }
+    peerProfile.avatar = `https://picsum.photos/seed/${encodeURIComponent(peerProfile._seed)}/96`;
+  }
   updateContactStrip();
 }
 
