@@ -63,14 +63,19 @@
     
 
     * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    html, body { height: 100%; }
-    body { margin: 0; height: 100svh; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
+html, body { height: 100%; min-height: 100%; }
+body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
 
-    .app { height: 100%; display: grid; grid-template-rows: var(--header-h) 1fr; background:
-      radial-gradient(55rem 35rem at 20% 90%, rgba(37, 99, 235, .10) 0%, transparent 60%),
-      radial-gradient(45rem 30rem at 120% -10%, rgba(16, 185, 129, .10) 0%, transparent 60%),
-      var(--bg-primary);
-    }
+.app {
+  height: 100%;
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr;
+  background:
+    radial-gradient(55rem 35rem at 20% 90%, rgba(37, 99, 235, .10) 0%, transparent 60%),
+    radial-gradient(45rem 30rem at 120% -10%, rgba(16, 185, 129, .10) 0%, transparent 60%),
+    var(--bg-primary);
+}
 
     /* HEADER */
     .header {
@@ -138,6 +143,7 @@
       grid-template-columns: var(--sidebar-w) 1fr;
       min-height: 0;
       height: 100%;
+      min-height: 0;
       transition: grid-template-columns .25s;
     }
     .sidebar.collapsed ~ .main {
@@ -182,7 +188,7 @@
 
     .field { display:flex; flex-direction:column; gap:6px; }
     .field label { font-size:12px; color: var(--text-tertiary); }
-    .room-input, .username-input, .link-output { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 10px 12px; color: var(--text-primary); font-family: 'SF Mono', ui-monospace, Menlo, Monaco, monospace; font-size: 13px; min-width: 0; }
+    .room-input, .username-input, .link-output { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 10px 12px; color: var(--text-primary); font-family: 'SF Mono', ui-monospace, Menlo, Monaco, monospace; font-size: 16px; min-width: 0; }
     .room-input { width: 100%; }
     .username-input { width: 100%; }
     .link-output { width: 100%; }
@@ -201,13 +207,15 @@
 
     /* CHAT */
     .chat {
-      min-width:0;
-      display:flex;
-      flex-direction:column;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
       background: var(--bg-secondary);
       grid-column: 1 / -1;
       width: 100%;
       height: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
     }
     .sidebar.collapsed ~ .main .chat {
       width: 100vw !important;
@@ -215,6 +223,7 @@
     }
     .messages {
       flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
       padding: 16px clamp(12px, 3vw, 24px);
       display: flex;
@@ -222,7 +231,6 @@
       gap: 14px;
       scroll-behavior: smooth;
       max-width: 100%;
-      min-height: 0;
       height: 100%;
     }
     .sidebar.collapsed ~ .main .messages {
@@ -273,7 +281,7 @@
       border: none;
       outline: none;
       color: var(--text-primary);
-      font-size: 14px;
+      font-size: 16px; /* Prevent mobile zoom */
       line-height: 1.4;
       resize: none;
       min-height: 20px;
@@ -539,12 +547,12 @@ function ensureAvatar() {
 ensureAvatar();
 
 function updateContactStrip() {
-  // Defensive: ensure DOM is ready and peerProfile is valid
+  // Always show the latest peerProfile name and avatar
   if (contactAvatar && peerProfile && peerProfile.avatar) {
     contactAvatar.src = peerProfile.avatar;
   }
-  if (contactName && peerProfile && peerProfile.name) {
-    contactName.textContent = peerProfile.name;
+  if (contactName) {
+    contactName.textContent = peerProfile && peerProfile.name ? peerProfile.name : 'Not connected';
   }
 }
 
@@ -593,6 +601,11 @@ function appendSys(text) {
 }
 
 function appendMsg(text, mine = false, username = null, timestamp = null) {
+  // If this is an incoming message and username is present, update peerProfile.name
+  if (!mine && username && peerProfile.name !== username) {
+    peerProfile.name = username;
+    updateContactStrip();
+  }
   const d = document.createElement('div');
   d.className = `message ${mine ? 'outgoing' : 'incoming'}`;
 
@@ -646,6 +659,11 @@ function updateFileTransferProgress(transferId, progress) {
 }
 
 function appendFile(name, size, url, mine = false, username = null, timestamp = null, mimeType = '') {
+  // If this is an incoming file and username is present, update peerProfile.name
+  if (!mine && username && peerProfile.name !== username) {
+    peerProfile.name = username;
+    updateContactStrip();
+  }
   const d = document.createElement('div');
   d.className = `message ${mine ? 'outgoing' : 'incoming'}`;
 
