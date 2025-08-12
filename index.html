@@ -405,7 +405,28 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
   </style>
 </head>
 <body>
-<div class="app">
+<!-- Modern Homepage Overlay -->
+<div id="homepage" class="homepage-overlay">
+  <div class="homepage-content stepper">
+    <button class="stepper-close" id="stepperClose" title="Close" style="display:none">×</button>
+    <div class="homepage-logo">💬</div>
+    <h1 id="stepperTitle">Welcome to Whispy</h1>
+    <div class="stepper-progress">
+      <span class="step-dot" id="dot0"></span>
+      <span class="step-dot" id="dot1"></span>
+      <span class="step-dot" id="dot2"></span>
+      <span class="step-dot" id="dot3"></span>
+    </div>
+    <div id="stepperBody" class="stepper-body">
+      <!-- Step content injected here -->
+    </div>
+    <div class="stepper-actions">
+      <button id="stepperNext" class="btn stepper-next-btn">Next</button>
+    </div>
+    <div class="homepage-footer">Made with ❤️ for privacy. Powered by PeerJS &amp; WebRTC.</div>
+  </div>
+</div>
+<div class="app" id="appMain" style="display:none;">
   <header class="header">
     <div class="logo" title="Whispy">
       <div class="logo-icon">💬</div>
@@ -957,5 +978,338 @@ usernameInput.focus();
 usernameInput.select();
 
 </script>
+<style>
+
+/* Apple/Silicon Valley inspired overlay */
+.homepage-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: linear-gradient(120deg, #f6f8fa 0%, #e9f3ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-width: 100vw;
+  color: #222;
+  animation: fadeIn 0.7s;
+  padding: 0;
+}
+/* --- HOMEPAGE OVERLAY: VERTICAL, CENTERED, MOBILE-FIRST --- */
+.homepage-content {
+  background: rgba(255,255,255,0.90);
+  border-radius: 28px;
+  box-shadow: 0 8px 40px 0 rgba(60,60,90,0.10), 0 1.5px 8px 0 rgba(37,99,235,0.07);
+  padding: 40px 20px 28px 20px;
+  max-width: 410px;
+  width: 96vw;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  backdrop-filter: blur(18px) saturate(1.2);
+  border: 1.5px solid rgba(200,210,255,0.18);
+}
+.homepage-logo {
+  font-size: 54px;
+  margin-bottom: 0px;
+  background: linear-gradient(120deg, #2563eb 30%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.homepage-content h1 {
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+  color: #1a2233;
+  text-align: center;
+}
+.homepage-lead {
+  font-size: 1.13rem;
+  margin: 0 0 12px 0;
+  color: #3a4a6b;
+  font-weight: 500;
+  text-align: center;
+}
+.homepage-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px 0;
+  color: #3a4a6b;
+  font-size: 1.01rem;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.homepage-features li {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.5;
+  text-align: center;
+}
+.homepage-features li span {
+  display: block;
+  font-size: 1.25em;
+  margin-bottom: 2px;
+}
+.homepage-btn {
+  font-size: 1.13rem;
+  padding: 15px 0;
+  border-radius: 18px;
+  margin-top: 10px;
+  width: 100%;
+  background: linear-gradient(120deg, #2563eb 60%, #10b981 100%);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(37,99,235,0.10);
+  letter-spacing: 0.01em;
+  transition: background 0.18s, transform 0.12s;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.homepage-btn:active {
+  transform: scale(0.98);
+}
+.homepage-btn:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.homepage-footer {
+  margin-top: 18px;
+  font-size: 0.99rem;
+  color: #6bbfae;
+  opacity: 0.92;
+  text-align: center;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Mobile-first adjustments */
+@media (max-width: 600px) {
+  .homepage-content {
+    padding: 24px 3vw 16px 3vw;
+    max-width: 99vw;
+    border-radius: 16px;
+    gap: 16px;
+  }
+  .homepage-logo {
+    font-size: 34px;
+    margin-bottom: 0;
+  }
+  .homepage-content h1 {
+    font-size: 1.18rem;
+    margin-bottom: 2px;
+    text-align: center;
+  }
+  .homepage-lead {
+    font-size: 0.99rem;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .homepage-btn {
+    font-size: 0.99rem;
+    padding: 12px 0;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .homepage-footer {
+    font-size: 0.91rem;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .homepage-features {
+    font-size: 0.97rem;
+    gap: 10px;
+    align-items: center;
+  }
+  .homepage-features li {
+    font-size: 0.99rem;
+    gap: 1px;
+    text-align: center;
+    align-items: center;
+  }
+}
+</style>
+<script>
+// Stepper onboarding logic
+const stepData = [
+  {
+    title: 'Welcome to Whispy',
+    icon: '💬',
+    html: `<div class="step-main"><b>A private, peer-to-peer chat app.</b><br>No logins. No servers. No data stored.</div>`
+  },
+  {
+    title: 'Truly Private',
+    icon: '🔒',
+    html: `<div class="step-main"><b>Messages go directly from you to your peer, never through a server.</b></div>`
+  },
+  {
+    title: 'No Accounts',
+    icon: '🕵️',
+    html: `<div class="step-main"><b>No sign-up, no email, no phone number, ever.</b></div>`
+  },
+  {
+    title: 'No Data Stored',
+    icon: '🚫',
+    html: `<div class="step-main"><b>Nothing is saved or logged. Close the tab, it\'s gone.</b></div>`
+  }
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+  var homepage = document.getElementById('homepage');
+  var appMain = document.getElementById('appMain');
+  var stepperTitle = document.getElementById('stepperTitle');
+  var stepperBody = document.getElementById('stepperBody');
+  var stepperNext = document.getElementById('stepperNext');
+  // var stepperBack = document.getElementById('stepperBack');
+  var stepperClose = document.getElementById('stepperClose');
+  var logo = document.querySelector('.homepage-logo');
+  var dots = [0,1,2,3].map(i=>document.getElementById('dot'+i));
+  let step = 0;
+
+  function renderStep() {
+    // Set title, icon, body
+    stepperTitle.textContent = stepData[step].title;
+    logo.textContent = stepData[step].icon;
+    stepperBody.innerHTML = stepData[step].html;
+    // Progress dots
+    dots.forEach((d,i)=>{
+      d.className = 'step-dot' + (i === step ? ' active' : '') + (i < step ? ' done' : '');
+    });
+    stepperNext.textContent = step === stepData.length-1 ? 'Start Chatting' : 'Next';
+    stepperClose.style.display = 'none';
+  }
+
+  stepperNext.onclick = function() {
+    if (step < stepData.length-1) {
+      step++;
+      renderStep();
+    } else {
+      homepage.style.display = 'none';
+      appMain.style.display = '';
+    }
+  };
+  // Optionally allow Enter/Left/Right
+  document.addEventListener('keydown', function(e) {
+    if (homepage.style.display !== 'none') {
+      if ((e.key === 'Enter' || e.keyCode === 13) && step < stepData.length) {
+        stepperNext.click();
+      } else if ((e.key === 'ArrowRight' || e.keyCode === 39) && step < stepData.length-1) {
+        stepperNext.click();
+      }
+    }
+  });
+  renderStep();
+});
+</script>
+/* Stepper onboarding styles */
+.stepper {
+  position: relative;
+}
+.stepper-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #b5b5b5;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.15s;
+}
+.stepper-close:hover { color: #222; }
+.stepper-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 18px 0 10px 0;
+  width: 100%;
+}
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e6eaf3;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.04);
+}
+.step-dot.active {
+  background: linear-gradient(120deg, #2563eb 60%, #10b981 100%);
+  box-shadow: 0 2px 8px rgba(37,99,235,0.10);
+}
+.step-dot.done {
+  background: #b5e3d8;
+}
+.stepper-body {
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.13rem;
+  color: #2a2a2a;
+  margin-bottom: 8px;
+}
+.step-main {
+  font-size: 1.13rem;
+  color: #2a2a2a;
+  text-align: center;
+  margin-bottom: 0;
+}
+.stepper-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 18px;
+}
+.stepper-next-btn {
+  background: linear-gradient(120deg, #2563eb 60%, #10b981 100%);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  border-radius: 24px;
+  padding: 16px 0;
+  font-size: 1.18rem;
+  width: 160px;
+  box-shadow: 0 2px 12px rgba(37,99,235,0.10);
+  letter-spacing: 0.01em;
+  transition: background 0.18s, transform 0.12s;
+  text-align: center;
+  display: block;
+  margin: 0 auto;
+}
+.stepper-next-btn:active {
+  transform: scale(0.98);
+}
+.stepper-next-btn:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .stepper-progress { gap: 8px; margin: 12px 0 8px 0; }
+  .step-dot { width: 10px; height: 10px; }
+  .stepper-body, .step-main { font-size: 1.01rem; }
+  .stepper-next-btn { font-size: 1.01rem; padding: 13px 0; border-radius: 16px; width: 100%; }
+}
 </body>
 </html>
