@@ -594,7 +594,7 @@ let currentUsername = 'Anonymous';
 let fileTransfers = new Map();
 let myAvatarSeed = null;
 let myAvatarUrl = '';
-let peerProfile = { name: 'Not connected', avatar: 'https://picsum.photos/seed/placeholder/96' };
+let peerProfile = { name: 'Connecting', avatar: 'https://picsum.photos/seed/placeholder/96' };
 
 // Theme — respect system, remember choice
 (function initTheme(){
@@ -646,7 +646,7 @@ function updateContactStrip() {
     contactAvatar.src = peerProfile.avatar;
   }
   if (contactName) {
-    contactName.textContent = peerProfile && peerProfile.name ? peerProfile.name : 'Not connected';
+    contactName.textContent = peerProfile && peerProfile.name ? peerProfile.name : 'Connecting';
   }
 }
 
