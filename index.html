@@ -1035,8 +1035,17 @@ function handleFileStart(msg) {
 function handleFileChunk(chunk) {
   if (!incomingFile) return;
   
-  // Ensure chunk is Uint8Array
-  const chunkData = chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : chunk;
+  // Always convert chunk to Uint8Array for consistent handling
+  let chunkData;
+  if (chunk instanceof ArrayBuffer) {
+    chunkData = new Uint8Array(chunk);
+  } else if (chunk instanceof Uint8Array) {
+    chunkData = chunk;
+  } else {
+    console.error('Invalid chunk type received');
+    return;
+  }
+  
   incomingFile.chunks.push(chunkData);
   incomingFile.received += chunkData.byteLength;
   
@@ -1048,16 +1057,26 @@ function handleFileEnd(msg) {
   if (!incomingFile) return;
   
   try {
-    // Create blob with proper MIME type
-    const blob = new Blob(incomingFile.chunks, { type: incomingFile.type });
+    // Concatenate all chunks into a single Uint8Array
+    const totalLength = incomingFile.chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+    const combinedArray = new Uint8Array(totalLength);
+    let offset = 0;
+    
+    for (const chunk of incomingFile.chunks) {
+      combinedArray.set(chunk, offset);
+      offset += chunk.length;
+    }
+    
+    // Create blob with proper MIME type and create URL
+    const blob = new Blob([combinedArray], { type: incomingFile.type });
     const url = URL.createObjectURL(blob);
     
-    // Clean up progress element
+    // Remove progress element
     if (incomingFile.progressElement) {
       incomingFile.progressElement.remove();
     }
     
-    // Append file message with proper metadata
+    // Append file message
     appendFile(
       incomingFile.name,
       blob.size,
@@ -1067,12 +1086,12 @@ function handleFileEnd(msg) {
       incomingFile.timestamp,
       incomingFile.type
     );
+    
   } catch (error) {
     console.error('Error handling file:', error);
     appendSys(`❌ Failed to process "${incomingFile.name}": ${error.message}`);
   }
   
-  // Clear state
   incomingFile = null;
 }
 
@@ -1085,38 +1104,37 @@ function sendText() {
 
 async function sendFile(file) {
   if (!file || !conn) return;
-
-  // Determine proper MIME type
-  const mimeType = file.type || getMimeType(file.name);
-  
-  // Create local preview immediately
-  const localUrl = URL.createObjectURL(new Blob([await file.arrayBuffer()], { type: mimeType }));
-  appendFile(file.name, file.size, localUrl, true, currentUsername, null, mimeType);
-  
-  // Notify peer about incoming file
-  conn.send(JSON.stringify({
-    type: 'fileStart',
-    name: file.name,
-    mimeType: mimeType,
-    size: file.size,
-    username: currentUsername,
-    timestamp: getTimestamp()
-  }));
-
-  // Read file as ArrayBuffer for reliable binary transfer
-  const buffer = await file.arrayBuffer();
-  const data = new Uint8Array(buffer);
-  let offset = 0;
   
   try {
+    // Create local preview immediately using the actual file
+    const localBlob = new Blob([file], { type: file.type });
+    const localUrl = URL.createObjectURL(localBlob);
+    
+    appendFile(file.name, file.size, localUrl, true, currentUsername, null, file.type);
+    
+    // Notify peer about incoming file
+    conn.send(JSON.stringify({
+      type: 'fileStart',
+      name: file.name,
+      mimeType: file.type || getMimeType(file.name),
+      size: file.size,
+      username: currentUsername,
+      timestamp: getTimestamp()
+    }));
+
+    // Read and send file in chunks
+    const buffer = await file.arrayBuffer();
+    const data = new Uint8Array(buffer);
+    let offset = 0;
+    
     while (offset < data.length) {
       const chunk = data.slice(offset, offset + CHUNK_SIZE);
-      conn.send(chunk.buffer);
+      conn.send(chunk);
       offset += chunk.length;
       
-      // Basic throttling for large files
-      if (offset > 1024 * 1024 && offset % (CHUNK_SIZE * 10) === 0) {
-        await new Promise(r => setTimeout(r, 30));
+      // Throttle large files
+      if (offset > 1024 * 1024) {
+        await new Promise(r => setTimeout(r, 50));
       }
     }
     
@@ -1124,8 +1142,7 @@ async function sendFile(file) {
     conn.send(JSON.stringify({
       type: 'fileEnd',
       name: file.name,
-      size: file.size,
-      mimeType: mimeType
+      size: file.size
     }));
     
   } catch (error) {
