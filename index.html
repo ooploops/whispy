@@ -18,29 +18,8 @@
       --sidebar-w: 320px;
       --header-h: 90px;
     }
-    
 
-    /* DARK THEME (default) */
-    [data-theme="dark"] {
-      --bg-primary: #0a0a0a;
-      --bg-secondary: #111111;
-      --bg-tertiary: #1a1a1a;
-      --bg-elevated: #1b1b1b;
-      --bg-accent: rgba(255,255,255,.04);
-      --border-subtle: rgba(255,255,255,.08);
-      --border-medium: rgba(255,255,255,.16);
-      --text-primary: #ffffff;
-      --text-secondary: #b5b5b5;
-      --text-tertiary: #7a7a7a;
-      --accent-blue: #2563eb;
-      --accent-blue-hover: #1e40af;
-      --accent-green: #10b981;
-      --accent-orange: #f59e0b;
-      --accent-red: #ef4444;
-      --glass: rgba(255,255,255,.06);
-    }
-
-    /* LIGHT THEME */
+    /* LIGHT THEME (default) */
     [data-theme="light"] {
       --bg-primary: #f7f7fb;
       --bg-secondary: #ffffff;
@@ -58,6 +37,26 @@
       --accent-orange: #ea580c;
       --accent-red: #dc2626;
       --glass: rgba(255,255,255,.9);
+    }
+
+    /* DARK THEME */
+    [data-theme="dark"] {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #111111;
+      --bg-tertiary: #1a1a1a;
+      --bg-elevated: #1b1b1b;
+      --bg-accent: rgba(255,255,255,.04);
+      --border-subtle: rgba(255,255,255,.08);
+      --border-medium: rgba(255,255,255,.16);
+      --text-primary: #ffffff;
+      --text-secondary: #b5b5b5;
+      --text-tertiary: #7a7a7a;
+      --accent-blue: #2563eb;
+      --accent-blue-hover: #1e40af;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --glass: rgba(255,255,255,.06);
     }
 
     
@@ -309,6 +308,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     .composer-btn:disabled { opacity: .35; cursor:not-allowed; }
     .send-btn { background: var(--accent-blue) !important; color: white !important; border-radius: 12px; }
     .send-btn:hover:not(:disabled) { background: var(--accent-blue-hover) !important; transform: scale(1.05); }
+    #fileBtn { font-size: 1.2em; margin-right: 4px; }
     .composer { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
 
     /* OVERLAY for mobile sidebar */
@@ -549,9 +549,10 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       <div class="composer">
         <div class="composer-input">
           <textarea id="textInput" class="message-input" placeholder="Type a message…" disabled rows="1"></textarea>
+          <button id="fileBtn" class="composer-btn" title="Send file" disabled>📎</button>
           <button id="sendBtn" class="composer-btn send-btn" title="Send" disabled>➤</button>
+          <input id="fileInput" type="file" class="hidden" />
         </div>
-        <!-- <input id="fileInput" type="file" class="hidden" /> -->
       </div>
     </section>
   </div>
@@ -767,78 +768,86 @@ function updateFileTransferProgress(transferId, progress) {
 }
 
 function appendFile(name, size, url, mine = false, username = null, timestamp = null, mimeType = '') {
-  // If this is an incoming file and username is present, update peerProfile.name
-  if (!mine && username && peerProfile.name !== username) {
-    peerProfile.name = username;
+  // If this is an incoming message, update peerProfile name and avatar if present
+  if (!mine) {
+    if (username && peerProfile.name !== username) {
+      peerProfile.name = username;
+    }
+    // Update contact info in the UI
     updateContactStrip();
   }
+  
   const d = document.createElement('div');
   d.className = `message ${mine ? 'outgoing' : 'incoming'}`;
 
-  const displayUsername = username || (mine ? currentUsername : (peerProfile.name || 'Guest'));
-  const displayTime = timestamp || getTimestamp();
+  // Header with username and timestamp
+  const header = document.createElement('div');
+  header.className = 'message-header';
+  header.innerHTML = `
+    <span class="username">${escapeHTML(username || (mine ? currentUsername : 'Guest'))}</span>
+    <span class="timestamp">${timestamp || getTimestamp()}</span>
+  `;
 
-  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(name) || (mimeType && mimeType.startsWith('image/'));
-  const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(name) || (mimeType && mimeType.startsWith('video/'));
-  const isAudio = /\.(mp3|wav|ogg|m4a)$/i.test(name) || (mimeType && mimeType.startsWith('audio/'));
-  const fileType = name.split('.').pop()?.toLowerCase() || '';
-  let fileIcon = '📄';
+  // File preview container
+  const wrap = document.createElement('div');
+  wrap.className = 'message-content';
+
+  // Determine file type and icon
+  const isImage = /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(name) || mimeType.startsWith('image/');
+  const isVideo = /\.(mp4|webm|mov|avi|mkv)$/i.test(name) || mimeType.startsWith('video/');
+  const isAudio = /\.(mp3|wav|ogg|m4a)$/i.test(name) || mimeType.startsWith('audio/');
+  const isPDF = /\.pdf$/i.test(name) || mimeType === 'application/pdf';
+  const isArchive = /\.(zip|rar|7z|tar|gz)$/i.test(name);
+  
+  let fileIcon = '📄'; // Default
   if (isImage) fileIcon = '🖼️';
   else if (isVideo) fileIcon = '🎥';
   else if (isAudio) fileIcon = '🎵';
-  else if (['pdf'].includes(fileType)) fileIcon = '📕';
-  else if (['zip','rar','7z'].includes(fileType)) fileIcon = '📦';
+  else if (isPDF) fileIcon = '📕';
+  else if (isArchive) fileIcon = '📦';
+  
+  // File info row
+  wrap.innerHTML = `
+    <div class="file-message">
+      <div class="file-icon">${fileIcon}</div>
+      <div class="file-info">
+        <div class="file-name">
+          <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
+            ${escapeHTML(name)}
+          </a>
+        </div>
+        <div class="file-size">${prettyBytes(size)}</div>
+      </div>
+    </div>
+  `;
 
-  const header = document.createElement('div');
-  header.className = 'message-header';
-  const u = document.createElement('span'); u.className = 'username'; u.textContent = displayUsername;
-  const t = document.createElement('span'); t.className = 'timestamp'; t.textContent = displayTime;
-  header.append(u,t);
-
-  const wrap = document.createElement('div');
-  wrap.className = 'message-content';
-  const fileRow = document.createElement('div');
-  fileRow.className = 'file-message';
-  fileRow.innerHTML = `
-    <div class="file-icon">${fileIcon}</div>
-    <div class="file-info">
-      <div class="file-name"><a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">${escapeHTML(name)}</a></div>
-      <div class="file-size">${prettyBytes(size)}</div>
-    </div>`;
-  wrap.appendChild(fileRow);
-
-  // Preview for images
+  // Add preview based on file type
   if (isImage) {
-    const ph = document.createElement('div'); ph.style.marginTop = '8px';
-    const img = document.createElement('img');
-    img.src = url; img.alt = name;
-    img.style.maxWidth = 'min(320px, 90vw)';
-    img.style.maxHeight = '240px';
-    img.style.borderRadius = '10px';
-    img.style.objectFit = 'cover';
-    img.style.display = 'block';
-    ph.appendChild(img); wrap.appendChild(ph);
-  }
-  // Preview for video
-  else if (isVideo) {
-    const ph = document.createElement('div'); ph.style.marginTop = '8px';
-    const video = document.createElement('video');
-    video.src = url; video.controls = true;
-    video.style.maxWidth = 'min(320px, 90vw)';
-    video.style.maxHeight = '240px';
-    video.style.borderRadius = '10px';
-    ph.appendChild(video); wrap.appendChild(ph);
-  }
-  // Preview for audio
-  else if (isAudio) {
-    const ph = document.createElement('div'); ph.style.marginTop = '8px';
-    const audio = document.createElement('audio');
-    audio.src = url; audio.controls = true;
-    audio.style.width = '100%';
-    ph.appendChild(audio); wrap.appendChild(ph);
+    const preview = document.createElement('div');
+    preview.style.marginTop = '8px';
+    preview.innerHTML = `
+      <img src="${url}" alt="${escapeHTML(name)}" 
+           style="max-width:min(320px, 90vw); max-height:240px; border-radius:10px; display:block;">
+    `;
+    wrap.appendChild(preview);
+  } else if (isVideo) {
+    const preview = document.createElement('div');
+    preview.style.marginTop = '8px';
+    preview.innerHTML = `
+      <video src="${url}" controls style="max-width:min(320px, 90vw); border-radius:10px;"></video>
+    `;
+    wrap.appendChild(preview);
+  } else if (isAudio) {
+    const preview = document.createElement('div');
+    preview.style.marginTop = '8px';
+    preview.innerHTML = `
+      <audio src="${url}" controls style="width:100%;"></audio>
+    `;
+    wrap.appendChild(preview);
   }
 
-  d.append(header, wrap);
+  d.appendChild(header);
+  d.appendChild(wrap);
   messagesEl.appendChild(d);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -994,15 +1003,57 @@ function sendText() {
 
 async function sendFile(file) {
   if (!file || !conn) return;
-  appendSys(`📤 Sending "${file.name}" (${prettyBytes(file.size)})…`);
-  conn.send(JSON.stringify({ type:'fileStart', name:file.name, mimeType:file.type, size:file.size, username: currentUsername, timestamp: getTimestamp() }));
-  const reader = file.stream().getReader(); let totalSent = 0; let chunkCount = 0;
+  
+  // Create local preview immediately
+  const localUrl = URL.createObjectURL(file);
+  appendFile(file.name, file.size, localUrl, true, currentUsername, null, file.type);
+  
+  // Notify peer about incoming file
+  conn.send(JSON.stringify({
+    type: 'fileStart',
+    name: file.name,
+    mimeType: file.type,
+    size: file.size,
+    username: currentUsername,
+    timestamp: getTimestamp()
+  }));
+
+  // Stream the file in chunks
+  const reader = file.stream().getReader();
+  let totalSent = 0;
+  
   try {
-    while (true) { const { done, value } = await reader.read(); if (done) break; let offset = 0; while (offset < value.byteLength) { const chunkSize = Math.min(CHUNK_SIZE, value.byteLength - offset); const chunk = value.buffer.slice(offset, offset + chunkSize); conn.send(chunk); totalSent += chunk.byteLength; offset += chunkSize; if (++chunkCount % 12 === 0) await new Promise(r=>setTimeout(r,1)); } }
-    conn.send(JSON.stringify({ type:'fileEnd', name:file.name, size: totalSent }));
-    appendSys(`✨ File "${file.name}" sent successfully`);
-    const localUrl = URL.createObjectURL(file); appendFile(file.name, file.size, localUrl, true, currentUsername);
-  } catch (error) { console.error('Error sending file:', error); appendSys(`❌ Failed to send "${file.name}": ${error.message}`); }
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      
+      // Send chunks with progress tracking
+      let offset = 0;
+      while (offset < value.byteLength) {
+        const chunkSize = Math.min(CHUNK_SIZE, value.byteLength - offset);
+        const chunk = value.buffer.slice(offset, offset + chunkSize);
+        conn.send(chunk);
+        totalSent += chunk.byteLength;
+        offset += chunkSize;
+        
+        // Throttle large files
+        if (totalSent > 1024 * 1024) {
+          await new Promise(r => setTimeout(r, 50));
+        }
+      }
+    }
+    
+    // Signal completion
+    conn.send(JSON.stringify({
+      type: 'fileEnd',
+      name: file.name,
+      size: totalSent
+    }));
+    
+  } catch (error) {
+    console.error('Error sending file:', error);
+    appendSys(`❌ Failed to send "${file.name}": ${error.message}`);
+  }
 }
 
 // ---- Event Handlers ----
@@ -1012,16 +1063,45 @@ $('copyLink').onclick = () => { const code = roomInput.value.trim() || (location
 $('sendBtn').onclick = sendText;
 textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); } });
 
-// File sharing disabled
-// $('fileBtn').onclick = () => $('fileInput').click();
-// $('fileInput').onchange = (e) => { const file = e.target.files?.[0]; if (file) sendFile(file); e.target.value=''; };
+// File sharing handlers
+$('fileBtn').onclick = () => $('fileInput').click();
+$('fileInput').onchange = (e) => { 
+  const file = e.target.files?.[0]; 
+  if (file) sendFile(file); 
+  e.target.value = ''; 
+};
 
+// File drag & drop handlers
+let dragCounter = 0;
+['dragenter','dragover'].forEach(evt => {
+  messagesEl.addEventListener(evt, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+});
 
-// File drag & drop disabled
-// let dragCounter = 0; ['dragenter','dragover'].forEach(evt => { messagesEl.addEventListener(evt,(e)=>{ e.preventDefault(); e.stopPropagation(); }); });
-// messagesEl.addEventListener('dragenter',(e)=>{ e.preventDefault(); dragCounter++; messagesEl.classList.add('drag-over'); });
-// messagesEl.addEventListener('dragleave',(e)=>{ e.preventDefault(); if (--dragCounter <= 0) { dragCounter=0; messagesEl.classList.remove('drag-over'); } });
-// messagesEl.addEventListener('drop',(e)=>{ e.preventDefault(); e.stopPropagation(); dragCounter=0; messagesEl.classList.remove('drag-over'); const file = e.dataTransfer?.files?.[0]; if (file) sendFile(file); });
+messagesEl.addEventListener('dragenter', (e) => {
+  e.preventDefault();
+  dragCounter++;
+  messagesEl.classList.add('drag-over');
+});
+
+messagesEl.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  if (--dragCounter <= 0) {
+    dragCounter = 0;
+    messagesEl.classList.remove('drag-over');
+  }
+});
+
+messagesEl.addEventListener('drop', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  dragCounter = 0;
+  messagesEl.classList.remove('drag-over');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) sendFile(file);
+});
 
 // Auto-join from URL hash
 window.addEventListener('load', () => {
