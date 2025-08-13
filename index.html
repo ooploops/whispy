@@ -806,44 +806,55 @@ function appendFile(name, size, url, mine = false, username = null, timestamp = 
   else if (isPDF) fileIcon = '📕';
   else if (isArchive) fileIcon = '📦';
   
-  // File info row
-  wrap.innerHTML = `
-    <div class="file-message">
-      <div class="file-icon">${fileIcon}</div>
-      <div class="file-info">
-        <div class="file-name">
+  // For images, only show the preview with download capability
+  if (isImage) {
+    wrap.innerHTML = `
+      <a href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener" 
+         style="display:block; text-decoration:none; cursor:pointer;">
+        <img src="${url}" alt="${escapeHTML(name)}" 
+             style="max-width:min(320px, 90vw); max-height:240px; border-radius:10px; display:block;">
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+          Click to download • ${prettyBytes(size)}
+        </div>
+      </a>
+    `;
+  } else {
+    // For non-image files, show the regular file info
+    wrap.innerHTML = `
+      <div class="file-message">
+        <div class="file-icon">${fileIcon}</div>
+        <div class="file-info">
+          <div class="file-name">
+            <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
+              ${escapeHTML(name)}
+            </a>
+          </div>
+          <div class="file-size">${prettyBytes(size)}</div>
+        </div>
+      </div>
+    `;
+  } else if (isVideo) {
+    wrap.innerHTML = `
+      <div class="file-message">
+        <div style="margin-bottom: 8px;">
           <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
-            ${escapeHTML(name)}
+            ${escapeHTML(name)} • ${prettyBytes(size)}
           </a>
         </div>
-        <div class="file-size">${prettyBytes(size)}</div>
+        <video src="${url}" controls style="max-width:min(320px, 90vw); border-radius:10px;"></video>
       </div>
-    </div>
-  `;
-
-  // Add preview based on file type
-  if (isImage) {
-    const preview = document.createElement('div');
-    preview.style.marginTop = '8px';
-    preview.innerHTML = `
-      <img src="${url}" alt="${escapeHTML(name)}" 
-           style="max-width:min(320px, 90vw); max-height:240px; border-radius:10px; display:block;">
     `;
-    wrap.appendChild(preview);
-  } else if (isVideo) {
-    const preview = document.createElement('div');
-    preview.style.marginTop = '8px';
-    preview.innerHTML = `
-      <video src="${url}" controls style="max-width:min(320px, 90vw); border-radius:10px;"></video>
-    `;
-    wrap.appendChild(preview);
   } else if (isAudio) {
-    const preview = document.createElement('div');
-    preview.style.marginTop = '8px';
-    preview.innerHTML = `
-      <audio src="${url}" controls style="width:100%;"></audio>
+    wrap.innerHTML = `
+      <div class="file-message">
+        <div style="margin-bottom: 8px;">
+          <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
+            ${escapeHTML(name)} • ${prettyBytes(size)}
+          </a>
+        </div>
+        <audio src="${url}" controls style="width:100%;"></audio>
+      </div>
     `;
-    wrap.appendChild(preview);
   }
 
   d.appendChild(header);
