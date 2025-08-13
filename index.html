@@ -1088,7 +1088,8 @@ function handleFileStart(msg) {
     received: 0,
     totalChunks: msg.chunks,
     username: msg.username, 
-    timestamp: msg.timestamp, 
+    timestamp: msg.timestamp,
+    dataUrlPrefix: msg.dataUrlPrefix, // Store data URL prefix for reconstruction
     progressElement: createFileTransferProgress(transferId, msg.name, msg.size)
   };
   
@@ -1164,9 +1165,13 @@ function handleFileEnd(msg) {
     const base64Data = incomingFile.chunks.join('');
     console.log('Chunks combined, total length:', base64Data.length);
     
-    // Create complete data URL
-    const dataUrl = `data:${incomingFile.type};base64,${base64Data}`;
-    console.log('Data URL created');
+    // Create complete data URL using the original prefix
+    const dataUrl = incomingFile.dataUrlPrefix + base64Data;
+    console.log('Data URL created:', {
+      prefixLength: incomingFile.dataUrlPrefix.length,
+      totalLength: dataUrl.length,
+      mimeType: incomingFile.type
+    });
     
     // Remove progress element
     if (incomingFile.progressElement) {
@@ -1261,6 +1266,7 @@ async function sendFile(file) {
       mimeType: file.type || getMimeType(file.name),
       size: file.size,
       chunks: chunks,
+      dataUrlPrefix: fileDataUrl.split(',')[0] + ',', // Send the data URL prefix for reconstruction
       username: currentUsername,
       timestamp: getTimestamp()
     }));
@@ -1271,7 +1277,8 @@ async function sendFile(file) {
       conn.send(JSON.stringify({
         type: 'fileChunk',
         chunk: chunk,
-        index: i
+        index: i,
+        total: chunks
       }));
       
       console.log('Chunk sent:', {
@@ -1279,9 +1286,9 @@ async function sendFile(file) {
         progress: ((i + 1) / chunks * 100).toFixed(1) + '%'
       });
       
-      // Small delay between chunks
+      // Small delay between chunks to prevent flooding
       if (i > 0 && i % 10 === 0) {
-        await new Promise(r => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 100));
       }
     }
     
@@ -1289,7 +1296,8 @@ async function sendFile(file) {
     conn.send(JSON.stringify({
       type: 'fileEnd',
       name: file.name,
-      size: file.size
+      size: file.size,
+      totalChunks: chunks
     }));
     
     console.log('File send completed successfully:', {
