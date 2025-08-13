@@ -1013,18 +1013,39 @@ const CHUNK_SIZE = 16 * 1024;
 let incomingFile = null;
 
 function onData(data) {
-  if (data instanceof ArrayBuffer) { handleFileChunk(data); return; }
   if (typeof data === 'string') {
-    let msg; try { msg = JSON.parse(data); } catch { return; }
+    let msg;
+    try { 
+      msg = JSON.parse(data);
+    } catch {
+      console.error('Failed to parse message:', data);
+      return;
+    }
+    
+    console.log('Received message type:', msg.type);
+    
     switch (msg.type) {
       case 'text':
         // Pass avatar if present, else fallback to peerProfile.avatar
         appendMsg(msg.text, false, msg.username, msg.timestamp, msg.avatar || peerProfile.avatar);
         break;
-      case 'fileStart': handleFileStart(msg); break;
-      case 'fileEnd': handleFileEnd(msg); break;
-      case 'profile': handleProfile(msg); break;
-      default: /* noop */
+      case 'fileComplete':
+        handleFileComplete(msg);
+        break;
+      case 'fileStart':
+        handleFileStart(msg);
+        break;
+      case 'fileChunk':
+        handleFileChunk(msg);
+        break;
+      case 'fileEnd':
+        handleFileEnd(msg);
+        break;
+      case 'profile':
+        handleProfile(msg);
+        break;
+      default:
+        console.log('Unknown message type:', msg.type);
     }
   }
 }
@@ -1055,7 +1076,7 @@ function handleFileStart(msg) {
     transferId,
     mimeType,
     originalMimeType: msg.mimeType,
-    fallbackMimeType: getMimeType(msg.name)
+    totalChunks: msg.chunks
   });
   
   incomingFile = { 
@@ -1063,8 +1084,9 @@ function handleFileStart(msg) {
     name: msg.name, 
     type: mimeType,
     size: msg.size, 
-    chunks: [], 
-    received: 0, 
+    chunks: new Array(msg.chunks), // Pre-allocate array for ordered chunks
+    received: 0,
+    totalChunks: msg.chunks,
     username: msg.username, 
     timestamp: msg.timestamp, 
     progressElement: createFileTransferProgress(transferId, msg.name, msg.size)
@@ -1073,45 +1095,52 @@ function handleFileStart(msg) {
   console.log('Incoming file object created:', incomingFile);
 }
 
-function handleFileChunk(chunk) {
+function handleFileComplete(msg) {
+  console.log('Received complete file in single message');
+  
+  try {
+    // File data is already a complete data URL
+    appendFile(
+      msg.name,
+      msg.size,
+      msg.data, // This is already a complete data URL
+      false,
+      msg.username,
+      msg.timestamp,
+      msg.mimeType
+    );
+    
+    console.log('Small file received and displayed successfully');
+    
+  } catch (error) {
+    console.error('Error handling complete file:', error);
+    appendSys(`❌ Failed to process "${msg.name}": ${error.message}`);
+  }
+}
+
+function handleFileChunk(msg) {
   if (!incomingFile) {
     console.warn('Received chunk but no active file transfer');
     return;
   }
   
-  console.log('Received chunk:', {
-    chunkType: chunk.constructor.name,
-    chunkByteLength: chunk.byteLength || chunk.length,
-    isArrayBuffer: chunk instanceof ArrayBuffer,
-    isUint8Array: chunk instanceof Uint8Array
-  });
-  
-  // Always convert chunk to Uint8Array for consistent handling
-  let chunkData;
   try {
-    if (chunk instanceof ArrayBuffer) {
-      chunkData = new Uint8Array(chunk);
-      console.log('Converted ArrayBuffer to Uint8Array');
-    } else if (chunk instanceof Uint8Array) {
-      chunkData = chunk;
-      console.log('Using chunk as Uint8Array directly');
-    } else {
-      console.error('Invalid chunk type received:', typeof chunk);
-      return;
-    }
-    
-    incomingFile.chunks.push(chunkData);
-    incomingFile.received += chunkData.byteLength;
+    // Store chunk in correct position
+    incomingFile.chunks[msg.index] = msg.chunk;
+    incomingFile.received++;
     
     console.log('Chunk processed:', {
-      chunksReceived: incomingFile.chunks.length,
-      bytesReceived: incomingFile.received,
-      totalExpected: incomingFile.size,
-      progress: ((incomingFile.received / incomingFile.size) * 100).toFixed(1) + '%'
+      index: msg.index,
+      chunksReceived: incomingFile.received,
+      totalChunks: incomingFile.totalChunks,
+      progress: ((incomingFile.received / incomingFile.totalChunks) * 100).toFixed(1) + '%'
     });
     
     // Update progress
-    updateFileTransferProgress(incomingFile.id, (incomingFile.received / incomingFile.size * 100));
+    updateFileTransferProgress(
+      incomingFile.id,
+      (incomingFile.received / incomingFile.totalChunks * 100)
+    );
     
   } catch (error) {
     console.error('Error processing chunk:', error);
@@ -1125,40 +1154,19 @@ function handleFileEnd(msg) {
   }
   
   console.log('File transfer ending:', {
-    expectedSize: incomingFile.size,
-    receivedSize: incomingFile.received,
-    chunksReceived: incomingFile.chunks.length
+    name: incomingFile.name,
+    chunksReceived: incomingFile.received,
+    totalChunks: incomingFile.totalChunks
   });
   
   try {
-    console.log('Beginning chunk concatenation...');
-    // Concatenate all chunks into a single Uint8Array
-    const totalLength = incomingFile.chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-    console.log('Calculated total length:', totalLength);
+    // Combine all chunks into complete base64 data
+    const base64Data = incomingFile.chunks.join('');
+    console.log('Chunks combined, total length:', base64Data.length);
     
-    const combinedArray = new Uint8Array(totalLength);
-    let offset = 0;
-    
-    for (const chunk of incomingFile.chunks) {
-      combinedArray.set(chunk, offset);
-      offset += chunk.length;
-    }
-    
-    console.log('Chunks combined:', {
-      combinedLength: combinedArray.length,
-      offset,
-      mimeType: incomingFile.type
-    });
-    
-    // Create blob with proper MIME type and create URL
-    const blob = new Blob([combinedArray], { type: incomingFile.type });
-    console.log('Blob created:', {
-      size: blob.size,
-      type: blob.type
-    });
-    
-    const url = URL.createObjectURL(blob);
-    console.log('Blob URL created:', url);
+    // Create complete data URL
+    const dataUrl = `data:${incomingFile.type};base64,${base64Data}`;
+    console.log('Data URL created');
     
     // Remove progress element
     if (incomingFile.progressElement) {
@@ -1168,8 +1176,8 @@ function handleFileEnd(msg) {
     // Append file message
     appendFile(
       incomingFile.name,
-      blob.size,
-      url,
+      incomingFile.size,
+      dataUrl,
       false,
       incomingFile.username,
       incomingFile.timestamp,
@@ -1212,79 +1220,81 @@ async function sendFile(file) {
       lastModified: file.lastModified
     });
     
-    // Create local preview immediately using the actual file
-    console.log('Creating local preview...');
-    const fileArrayBuffer = await file.arrayBuffer();
-    console.log('File read as ArrayBuffer:', { byteLength: fileArrayBuffer.byteLength });
-    
-    const localBlob = new Blob([fileArrayBuffer], { type: file.type });
-    console.log('Local blob created:', { 
-      size: localBlob.size, 
-      type: localBlob.type 
+    // Read file as Data URL for local preview and sending
+    const reader = new FileReader();
+    const fileDataUrl = await new Promise((resolve, reject) => {
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
     });
     
-    const localUrl = URL.createObjectURL(localBlob);
-    console.log('Local URL created:', localUrl);
+    console.log('File read as Data URL, length:', fileDataUrl.length);
     
-    appendFile(file.name, file.size, localUrl, true, currentUsername, null, file.type);
+    // Create local preview
+    appendFile(file.name, file.size, fileDataUrl, true, currentUsername, null, file.type);
     console.log('Local preview appended to chat');
     
-    // Notify peer about incoming file
-    const fileStartMsg = {
+    // Send file data in a single message for smaller files (< 1MB)
+    if (file.size < 1024 * 1024) {
+      conn.send(JSON.stringify({
+        type: 'fileComplete',
+        name: file.name,
+        mimeType: file.type || getMimeType(file.name),
+        size: file.size,
+        data: fileDataUrl,
+        username: currentUsername,
+        timestamp: getTimestamp()
+      }));
+      console.log('Small file sent in single message');
+      return;
+    }
+    
+    // For larger files, split the base64 string into chunks
+    const base64Data = fileDataUrl.split(',')[1];
+    const chunkSize = 32768; // 32KB chunks of base64 data
+    const chunks = Math.ceil(base64Data.length / chunkSize);
+    
+    // Send start message
+    conn.send(JSON.stringify({
       type: 'fileStart',
       name: file.name,
       mimeType: file.type || getMimeType(file.name),
       size: file.size,
+      chunks: chunks,
       username: currentUsername,
       timestamp: getTimestamp()
-    };
-    console.log('Sending fileStart message:', fileStartMsg);
-    conn.send(JSON.stringify(fileStartMsg));
-
-    // Read and send file in chunks
-    const data = new Uint8Array(fileArrayBuffer);
-    let offset = 0;
-    let chunkCount = 0;
+    }));
     
-    console.log('Starting chunk transfer:', {
-      totalSize: data.length,
-      chunkSize: CHUNK_SIZE,
-      estimatedChunks: Math.ceil(data.length / CHUNK_SIZE)
-    });
-    
-    while (offset < data.length) {
-      const chunk = data.slice(offset, offset + CHUNK_SIZE);
-      conn.send(chunk);
-      offset += chunk.length;
-      chunkCount++;
+    // Send chunks
+    for (let i = 0; i < chunks; i++) {
+      const chunk = base64Data.slice(i * chunkSize, (i + 1) * chunkSize);
+      conn.send(JSON.stringify({
+        type: 'fileChunk',
+        chunk: chunk,
+        index: i
+      }));
       
-      if (chunkCount % 10 === 0) {
-        console.log('Transfer progress:', {
-          chunksSent: chunkCount,
-          bytesSent: offset,
-          progress: ((offset / data.length) * 100).toFixed(1) + '%'
-        });
-      }
+      console.log('Chunk sent:', {
+        index: i,
+        progress: ((i + 1) / chunks * 100).toFixed(1) + '%'
+      });
       
-      // Throttle large files
-      if (offset > 1024 * 1024) {
+      // Small delay between chunks
+      if (i > 0 && i % 10 === 0) {
         await new Promise(r => setTimeout(r, 50));
       }
     }
     
     // Signal completion
-    const fileEndMsg = {
+    conn.send(JSON.stringify({
       type: 'fileEnd',
       name: file.name,
       size: file.size
-    };
-    console.log('Sending fileEnd message:', fileEndMsg);
-    conn.send(JSON.stringify(fileEndMsg));
+    }));
     
     console.log('File send completed successfully:', {
-      totalChunks: chunkCount,
-      totalBytes: offset,
-      fileName: file.name
+      fileName: file.name,
+      totalChunks: chunks
     });
     
   } catch (error) {
