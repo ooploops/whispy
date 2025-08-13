@@ -361,6 +361,29 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     /* UTIL */
     .hidden { display:none !important; }
 
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-subtle);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+
     /* RESPONSIVE */
     @media (max-width: 900px) {
       :root { --sidebar-w: 88vw; }
@@ -480,6 +503,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       </li>
     </ul>
     <button id="stepperNext" class="homepage-btn">Start Chatting</button>
+    <div id="toast" class="toast">Room code copied to clipboard!</div>
     <div class="homepage-footer">
       <div class="footer-links">
         <button onclick="showPrivacyPolicy()" class="footer-link">Privacy Policy</button>
@@ -1660,11 +1684,32 @@ inviteStartBtn.addEventListener('click', () => {
   document.getElementById('appMain').style.display = '';
 });
 
-  // Initialize
-  updateUI(false);
-  appendSys('Welcome to Whispy!');
-  usernameInput.focus();
-  usernameInput.select();
+  // Toast notification
+function showToast(message, duration = 3000) {
+  const toast = document.getElementById('toast');
+  if (message) toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+// Handle landing page start button
+document.getElementById('stepperNext').addEventListener('click', () => {
+  document.getElementById('homepage').style.display = 'none';
+  document.getElementById('appMain').style.display = '';
+  
+  // Only auto-create room if we're not coming from a shared link
+  if (!location.hash) {
+    const code = randCode();
+    hostRoom(code);
+    showToast('Room code copied to clipboard');
+  }
+});
+
+// Initialize
+updateUI(false);
+appendSys('Welcome to Whispy!');
+usernameInput.focus();
+usernameInput.select();
 
 </script>
 <style>
