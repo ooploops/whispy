@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cal+Sans&display=swap');
 
     /* THEME TOKENS */
     :root {
@@ -64,7 +64,7 @@
 
     * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 html, body { height: 100%; min-height: 100%; }
-body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
+body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); overflow: hidden; letter-spacing: 0.04em; }
 
 .app {
   height: 100%;
@@ -188,7 +188,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
 
     .field { display:flex; flex-direction:column; gap:6px; }
     .field label { font-size:12px; color: var(--text-tertiary); }
-    .room-input, .username-input, .link-output { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 10px 12px; color: var(--text-primary); font-family: 'SF Mono', ui-monospace, Menlo, Monaco, monospace; font-size: 16px; min-width: 0; }
+    .room-input, .username-input, .link-output { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 10px 12px; color: var(--text-primary); font-family: 'Cal Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 16px; min-width: 0; letter-spacing: 0.05em; }
     .room-input { width: 100%; }
     .username-input { width: 100%; }
     .link-output { width: 100%; }
@@ -402,6 +402,56 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
     .loading-dots span:nth-child(1) { animation-delay: -.32s; }
     .loading-dots span:nth-child(2) { animation-delay: -.16s; }
     @keyframes loadingDot { 0%,80%,100%{opacity:.4;} 40%{opacity:1;} }
+
+    /* Invite Overlay Styles */
+.invite-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: linear-gradient(120deg, #f6f8fa 0%, #e9f3ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-width: 100vw;
+  color: #333333;
+  animation: fadeIn 0.7s;
+  padding: 0;
+}
+.invite-overlay.hidden { display: none !important; }
+.invite-content {
+  background: rgba(255,255,255,0.96);
+  border-radius: 28px;
+  box-shadow: 0 8px 40px 0 rgba(60,60,90,0.10), 0 1.5px 8px 0 rgba(37,99,235,0.07);
+  padding: 38px 20px 28px 20px;
+  max-width: 370px;
+  width: 96vw;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  backdrop-filter: blur(18px) saturate(1.2);
+  border: 1.5px solid rgba(200,210,255,0.18);
+}
+.invite-logo {
+  font-size: 44px;
+  margin-bottom: 0px;
+  background: linear-gradient(120deg, #2563eb 30%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.invite-host {
+  font-size: 1.1rem;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
   </style>
 </head>
 <body>
@@ -423,7 +473,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
     <div class="stepper-actions">
       <button id="stepperNext" class="btn stepper-next-btn">Next</button>
     </div>
-    <div class="homepage-footer">Made with ❤️ for privacy. Powered by PeerJS &amp; WebRTC.</div>
+    <div class="homepage-footer">Made with ❤️ for privacy.</div>
   </div>
 </div>
 <div class="app" id="appMain" style="display:none;">
@@ -504,6 +554,16 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Inter', -apple-s
         <!-- <input id="fileInput" type="file" class="hidden" /> -->
       </div>
     </section>
+  </div>
+</div>
+
+<!-- Invite Overlay for joining via link -->
+<div id="inviteOverlay" class="invite-overlay hidden">
+  <div class="invite-content">
+    <div class="invite-logo">💬</div>
+    <h2 id="inviteTitle">You've been invited!</h2>
+    <div id="inviteHost" class="invite-host">Room by <span id="inviteHostName">Anonymous</span></div>
+    <button id="inviteStartBtn" class="homepage-btn">Start Chatting</button>
   </div>
 </div>
 
@@ -593,6 +653,8 @@ function updateContactStrip() {
 usernameInput.addEventListener('input', (e) => {
   currentUsername = e.target.value.trim() || 'Anonymous';
   meName.textContent = currentUsername;
+  // Save as last host name for invite overlay
+  try { localStorage.setItem('whisper-last-host', currentUsername); } catch {}
   if (conn && conn.open) {
     try { conn.send(JSON.stringify({ type: 'profile', name: currentUsername, avatar: myAvatarUrl })); } catch {}
   }
@@ -968,7 +1030,41 @@ window.addEventListener('load', () => {
   updateContactStrip();
 
   const code = location.hash ? decodeURIComponent(location.hash.slice(1)) : '';
-  if (code) { roomInput.value = code; appendSys(`Detected room link: ${code}`); setTimeout(() => { if (!peer) joinRoom(code); }, 400); }
+  if (code) {
+    roomInput.value = code;
+    appendSys(`Detected room link: ${code}`);
+    // If joining via link, show invite overlay before joining
+    setTimeout(() => {
+      if (!peer) {
+        // Try to get host name from localStorage (if available)
+        let hostName = localStorage.getItem('whisper-last-host') || 'Anonymous';
+        showInviteOverlay(hostName);
+        inviteStartBtn.onclick = function() {
+          hideInviteOverlay();
+          joinRoom(code);
+        };
+      }
+    }, 400);
+  }
+});
+
+// Invite overlay logic
+const inviteOverlay = document.getElementById('inviteOverlay');
+const inviteHostName = document.getElementById('inviteHostName');
+const inviteStartBtn = document.getElementById('inviteStartBtn');
+let inviteHost = 'Anonymous';
+
+function showInviteOverlay(hostName) {
+  inviteHostName.textContent = hostName || 'Anonymous';
+  inviteOverlay.classList.remove('hidden');
+}
+function hideInviteOverlay() {
+  inviteOverlay.classList.add('hidden');
+}
+inviteStartBtn.addEventListener('click', () => {
+  hideInviteOverlay();
+  document.getElementById('homepage').style.display = 'none';
+  document.getElementById('appMain').style.display = '';
 });
 
 // Initialize
@@ -991,7 +1087,7 @@ usernameInput.select();
   justify-content: center;
   min-height: 100vh;
   min-width: 100vw;
-  color: #222;
+  color: #333333;
   animation: fadeIn 0.7s;
   padding: 0;
 }
@@ -1027,7 +1123,7 @@ usernameInput.select();
   font-size: 2.1rem;
   font-weight: 700;
   margin: 0 0 6px 0;
-  letter-spacing: -0.5px;
+  letter-spacing: 0.5px;
   color: #1a2233;
   text-align: center;
 }
@@ -1092,7 +1188,7 @@ usernameInput.select();
 .homepage-footer {
   margin-top: 18px;
   font-size: 0.99rem;
-  color: #6bbfae;
+  color: #333333;
   opacity: 0.92;
   text-align: center;
 }
@@ -1153,7 +1249,7 @@ const stepData = [
   {
     title: 'Welcome to Whispy',
     icon: '💬',
-    html: `<div class="step-main"><b>A private, peer-to-peer chat app.</b><br>No logins. No servers. No data stored.</div>`
+    html: `<div class="step-main"><b>No logins. No servers. No data stored.</b></div>`
   },
   {
     title: 'Truly Private',
@@ -1219,97 +1315,5 @@ document.addEventListener('DOMContentLoaded', function() {
   renderStep();
 });
 </script>
-/* Stepper onboarding styles */
-.stepper {
-  position: relative;
-}
-.stepper-close {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: #b5b5b5;
-  cursor: pointer;
-  z-index: 2;
-  transition: color 0.15s;
-}
-.stepper-close:hover { color: #222; }
-.stepper-progress {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin: 18px 0 10px 0;
-  width: 100%;
-}
-.step-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #e6eaf3;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 4px rgba(37,99,235,0.04);
-}
-.step-dot.active {
-  background: linear-gradient(120deg, #2563eb 60%, #10b981 100%);
-  box-shadow: 0 2px 8px rgba(37,99,235,0.10);
-}
-.step-dot.done {
-  background: #b5e3d8;
-}
-.stepper-body {
-  min-height: 56px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.13rem;
-  color: #2a2a2a;
-  margin-bottom: 8px;
-}
-.step-main {
-  font-size: 1.13rem;
-  color: #2a2a2a;
-  text-align: center;
-  margin-bottom: 0;
-}
-.stepper-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-top: 18px;
-}
-.stepper-next-btn {
-  background: linear-gradient(120deg, #2563eb 60%, #10b981 100%);
-  color: #fff;
-  border: none;
-  font-weight: 700;
-  border-radius: 24px;
-  padding: 16px 0;
-  font-size: 1.18rem;
-  width: 160px;
-  box-shadow: 0 2px 12px rgba(37,99,235,0.10);
-  letter-spacing: 0.01em;
-  transition: background 0.18s, transform 0.12s;
-  text-align: center;
-  display: block;
-  margin: 0 auto;
-}
-.stepper-next-btn:active {
-  transform: scale(0.98);
-}
-.stepper-next-btn:focus {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
-}
-@media (max-width: 600px) {
-  .stepper-progress { gap: 8px; margin: 12px 0 8px 0; }
-  .step-dot { width: 10px; height: 10px; }
-  .stepper-body, .step-main { font-size: 1.01rem; }
-  .stepper-next-btn { font-size: 1.01rem; padding: 13px 0; border-radius: 16px; width: 100%; }
-}
 </body>
 </html>
