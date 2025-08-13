@@ -1,4 +1,4 @@
-# Whispy Chat
+# Whispy - Private P2P Chat
 
 A minimalist peer-to-peer chat application focused on privacy and simplicity. Built with WebRTC for direct, serverless communication between users.
 
