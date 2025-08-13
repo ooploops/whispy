@@ -2,8 +2,6 @@
 
 A minimalist peer-to-peer chat application focused on privacy and simplicity. Built with WebRTC for direct, serverless communication between users.
 
-![Whispy Chat](https://picsum.photos/seed/whispy/800/400)
-
 ## Features
 
 - 🔒 **End-to-End Private**: Direct peer-to-peer connections with no server in between
@@ -15,7 +13,7 @@ A minimalist peer-to-peer chat application focused on privacy and simplicity. Bu
 
 ## Getting Started
 
-1. Visit [whispy.chat](https://whispy.chat)
+1. Visit [whispy.chat](https://ooploops.github.io/whispy/)
 2. Click "Start Chatting"
 3. Create a new room or join an existing one
 4. Share your room link with someone to start chatting
@@ -43,19 +41,6 @@ A minimalist peer-to-peer chat application focused on privacy and simplicity. Bu
 - Safari 15+
 - Mobile browsers supported
 
-## Development
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/whispy.git
-
-# Navigate to project directory
-cd whispy
-
-# Serve with any static file server
-python -m http.server 8000
-```
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -72,7 +57,7 @@ MIT License - feel free to use this project for personal or commercial purposes.
 
 ## Contact
 
-For support or inquiries: hello@whispy.chat
+Don't talk to me.
 
 ---
 
