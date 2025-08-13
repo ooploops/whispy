@@ -655,6 +655,7 @@ usernameInput.addEventListener('input', (e) => {
   meName.textContent = currentUsername;
   // Save as last host name for invite overlay
   try { localStorage.setItem('whisper-last-host', currentUsername); } catch {}
+  // Broadcast live name change to peer
   if (conn && conn.open) {
     try { conn.send(JSON.stringify({ type: 'profile', name: currentUsername, avatar: myAvatarUrl })); } catch {}
   }
