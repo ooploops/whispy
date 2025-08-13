@@ -460,20 +460,187 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
   <div class="homepage-content stepper">
     <button class="stepper-close" id="stepperClose" title="Close" style="display:none">×</button>
     <div class="homepage-logo">💬</div>
-    <h1 id="stepperTitle">Welcome to Whispy</h1>
-    <div class="stepper-progress">
-      <span class="step-dot" id="dot0"></span>
-      <span class="step-dot" id="dot1"></span>
-      <span class="step-dot" id="dot2"></span>
-      <span class="step-dot" id="dot3"></span>
+    <h1>Whispy Chat</h1>
+    <p class="homepage-lead">A minimalist peer-to-peer chat application focused on privacy and simplicity.</p>
+    <ul class="homepage-features">
+      <li>
+        <span>🔒</span>
+        <strong>End-to-End Private</strong>
+        <p>Direct peer-to-peer connections with no server in between.</p>
+      </li>
+      <li>
+        <span>⚡️</span>
+        <strong>Instant Setup</strong>
+        <p>No registration or installation required. Start chatting immediately.</p>
+      </li>
+      <li>
+        <span>📱</span>
+        <strong>Cross Platform</strong>
+        <p>Works on any device with a modern web browser.</p>
+      </li>
+    </ul>
+    <button id="stepperNext" class="homepage-btn">Start Chatting</button>
+    <div class="homepage-footer">
+      <div class="footer-links">
+        <button onclick="showPrivacyPolicy()" class="footer-link">Privacy Policy</button>
+        <span class="footer-dot">•</span>
+        <button onclick="showTerms()" class="footer-link">Terms of Service</button>
+        <span class="footer-dot">•</span>
+        <button onclick="showFAQ()" class="footer-link">FAQ</button>
+      </div>
+      <div class="footer-copyright">Made with privacy in mind • No data stored • Open source</div>
     </div>
-    <div id="stepperBody" class="stepper-body">
-      <!-- Step content injected here -->
+
+    <!-- Privacy Policy Overlay -->
+    <div id="privacyOverlay" class="legal-overlay">
+      <div class="legal-content">
+        <button class="close-btn" onclick="hidePrivacyPolicy()">×</button>
+        <h2>Privacy Policy</h2>
+        <div class="legal-text">
+          <p><strong>Last Updated: August 12, 2025</strong></p>
+          
+          <h3>1. Information We Don't Collect</h3>
+          <p>Whispy Chat is designed with privacy at its core. We do not:</p>
+          <ul>
+            <li>Collect or store any personal information</li>
+            <li>Track user behavior or analytics</li>
+            <li>Use cookies or similar tracking technologies</li>
+            <li>Store chat messages or file transfers</li>
+            <li>Maintain user accounts or profiles</li>
+          </ul>
+
+          <h3>2. How It Works</h3>
+          <p>Whispy Chat operates on a peer-to-peer basis, meaning:</p>
+          <ul>
+            <li>Messages are sent directly between users</li>
+            <li>No data passes through our servers</li>
+            <li>All data exists only in your browser during the active session</li>
+            <li>Once you close the tab, all data is permanently deleted</li>
+          </ul>
+
+          <h3>3. Technical Implementation</h3>
+          <p>We use WebRTC technology for direct peer-to-peer connections. The only server interaction is for initial peer discovery, which contains no personal data.</p>
+
+          <h3>4. Data Security</h3>
+          <p>While we ensure secure peer-to-peer connections, users should:</p>
+          <ul>
+            <li>Not share sensitive personal information</li>
+            <li>Be mindful of files they share</li>
+            <li>Verify they're chatting with their intended recipient</li>
+          </ul>
+
+          <h3>5. Changes to This Policy</h3>
+          <p>We may update this policy and will notify users of any changes through the platform.</p>
+
+          <h3>6. Contact</h3>
+          <p>For privacy concerns, contact: privacy@whispy.chat</p>
+        </div>
+      </div>
     </div>
-    <div class="stepper-actions">
-      <button id="stepperNext" class="btn stepper-next-btn">Next</button>
+
+    <!-- Terms of Service Overlay -->
+    <div id="termsOverlay" class="legal-overlay">
+      <div class="legal-content">
+        <button class="close-btn" onclick="hideTerms()">×</button>
+        <h2>Terms of Service</h2>
+        <div class="legal-text">
+          <p><strong>Last Updated: August 12, 2025</strong></p>
+
+          <h3>1. Acceptance of Terms</h3>
+          <p>By using Whispy Chat, you agree to these Terms of Service. If you disagree with any part of the terms, you may not access the service.</p>
+
+          <h3>2. Prohibited Uses</h3>
+          <p>You agree not to use Whispy Chat for:</p>
+          <ul>
+            <li>Any illegal activities</li>
+            <li>Harassment or abuse</li>
+            <li>Sharing malicious software</li>
+            <li>Spamming or automated messaging</li>
+            <li>Impersonating others</li>
+            <li>Sharing content that infringes on intellectual property rights</li>
+            <li>Any activity that could harm other users or the service</li>
+          </ul>
+
+          <h3>3. User Responsibilities</h3>
+          <p>Users are responsible for:</p>
+          <ul>
+            <li>All content they share</li>
+            <li>Ensuring they have rights to share any content</li>
+            <li>Maintaining the security of their connections</li>
+            <li>Following applicable laws and regulations</li>
+          </ul>
+
+          <h3>4. Disclaimer of Warranties</h3>
+          <p>The service is provided "as is" without warranties of any kind, either express or implied. We do not guarantee uninterrupted or error-free service.</p>
+
+          <h3>5. Limitation of Liability</h3>
+          <p>Whispy Chat shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the service.</p>
+
+          <h3>6. Termination</h3>
+          <p>We reserve the right to terminate or suspend access to our service immediately, without prior notice, for any conduct that we believe violates these Terms of Service.</p>
+
+          <h3>7. Governing Law</h3>
+          <p>These terms shall be governed by and construed in accordance with the laws of the jurisdiction in which we operate.</p>
+
+          <h3>8. Changes to Terms</h3>
+          <p>We reserve the right to modify these terms at any time. We will notify users of any changes by updating the date at the top of this agreement.</p>
+        </div>
+      </div>
     </div>
-    <div class="homepage-footer">Made with ❤️ for privacy.</div>
+
+    <!-- FAQ Overlay -->
+    <div id="faqOverlay" class="legal-overlay">
+      <div class="legal-content">
+        <button class="close-btn" onclick="hideFAQ()">×</button>
+        <h2>Frequently Asked Questions</h2>
+        <div class="legal-text">
+          <div class="faq-item">
+            <h3>What is Whispy Chat?</h3>
+            <p>Whispy Chat is a private, peer-to-peer chat application that allows direct communication between users without storing any data on servers.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>How secure is Whispy Chat?</h3>
+            <p>Messages are sent directly between users using encrypted WebRTC connections. No messages or files are stored on servers, and all data is deleted when you close your browser tab.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Do I need an account?</h3>
+            <p>No. Whispy Chat doesn't require registration or accounts. Simply create or join a room to start chatting.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>How do I start a chat?</h3>
+            <p>Click "Start Chatting," then either create a new room or join an existing one with a room code.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Can I share files?</h3>
+            <p>Yes, you can share files directly with your chat partner. Files are transferred peer-to-peer and are not stored on any servers.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>What happens to my messages?</h3>
+            <p>Messages exist only in your browser during the active chat session. Once you close the tab, all data is permanently deleted.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Is there a message history?</h3>
+            <p>No. To maintain privacy, we don't store any message history. Messages are only available during the active chat session.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>What browsers are supported?</h3>
+            <p>Whispy Chat works on all modern browsers that support WebRTC, including Chrome, Firefox, Safari, and Edge.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>How can I report abuse?</h3>
+            <p>While we don't store messages or user data, you can report abuse to support@whispy.chat.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="app" id="appMain" style="display:none;">
@@ -1494,107 +1661,130 @@ inviteStartBtn.addEventListener('click', () => {
 </script>
 <style>
 
-/* Apple/Silicon Valley inspired overlay */
+/* Light themed landing page */
 .homepage-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: linear-gradient(120deg, #f6f8fa 0%, #e9f3ff 100%);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  min-width: 100vw;
-  color: #333333;
+  width: 100%;
+  color: #111111;
   animation: fadeIn 0.7s;
-  padding: 0;
+  padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 /* --- HOMEPAGE OVERLAY: VERTICAL, CENTERED, MOBILE-FIRST --- */
 .homepage-content {
-  background: rgba(255,255,255,0.90);
-  border-radius: 28px;
-  box-shadow: 0 8px 40px 0 rgba(60,60,90,0.10), 0 1.5px 8px 0 rgba(37,99,235,0.07);
-  padding: 40px 20px 28px 20px;
-  max-width: 410px;
-  width: 96vw;
+  max-width: 1000px;
+  width: 100%;
+  margin: auto;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
-  backdrop-filter: blur(18px) saturate(1.2);
-  border: 1.5px solid rgba(200,210,255,0.18);
+  gap: 48px;
+  padding: clamp(32px, 5vw, 64px) 24px;
 }
 .homepage-logo {
-  font-size: 54px;
-  margin-bottom: 0px;
-  background: linear-gradient(120deg, #2563eb 30%, #10b981 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
+  font-size: clamp(64px, 8vw, 96px);
+  margin-bottom: 0;
+  color: #111111;
   display: flex;
   justify-content: center;
   align-items: center;
+  animation: float 6s ease-in-out infinite;
 }
 .homepage-content h1 {
-  font-size: 2.1rem;
-  font-weight: 700;
-  margin: 0 0 6px 0;
-  letter-spacing: 0.5px;
-  color: #1a2233;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.03em;
+  color: #111111;
   text-align: center;
+  line-height: 1.1;
+  max-width: 15ch;
 }
 .homepage-lead {
-  font-size: 1.13rem;
-  margin: 0 0 12px 0;
-  color: #3a4a6b;
-  font-weight: 500;
+  font-size: clamp(1.125rem, 2vw, 1.375rem);
+  margin: 0;
+  color: #555555;
+  font-weight: 400;
   text-align: center;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 .homepage-features {
   list-style: none;
   padding: 0;
-  margin: 0 0 18px 0;
-  color: #3a4a6b;
-  font-size: 1.01rem;
-  font-weight: 500;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
+  margin: 0;
+  color: #555555;
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  font-weight: 400;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(20px, 3vw, 32px);
+  width: 100%;
+  max-width: 1000px;
 }
 .homepage-features li {
-  margin-bottom: 0;
+  margin: 0;
+  padding: clamp(24px, 4vw, 32px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  line-height: 1.5;
+  gap: 16px;
+  line-height: 1.6;
   text-align: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.homepage-features li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.1);
 }
 .homepage-features li span {
   display: block;
+  font-size: 2.5em;
+  margin-bottom: 4px;
+}
+.homepage-features li strong {
   font-size: 1.25em;
-  margin-bottom: 2px;
+  color: #111111;
+  margin-bottom: 8px;
+}
+.homepage-features li p {
+  margin: 0;
+  color: #666666;
 }
 .homepage-btn {
-  font-size: 1.13rem;
-  padding: 15px 0;
-  border-radius: 18px;
-  margin-top: 10px;
-  width: 100%;
-  background: linear-gradient(120deg, #2563eb 60%, #10b981 100%);
-  color: #fff;
+  font-size: 1.125rem;
+  padding: 16px 48px;
+  border-radius: 12px;
+  background: #111111;
+  color: #ffffff;
   border: none;
   font-weight: 600;
-  box-shadow: 0 2px 12px rgba(37,99,235,0.10);
-  letter-spacing: 0.01em;
-  transition: background 0.18s, transform 0.12s;
+  transition: all 0.2s ease;
   text-align: center;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 .homepage-btn:active {
   transform: scale(0.98);
@@ -1604,134 +1794,323 @@ inviteStartBtn.addEventListener('click', () => {
   outline-offset: 2px;
 }
 .homepage-footer {
-  margin-top: 18px;
-  font-size: 0.99rem;
-  color: #333333;
-  opacity: 0.92;
+  margin-top: clamp(32px, 5vw, 64px);
+  font-size: 0.875rem;
+  color: #666666;
   text-align: center;
 }
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.homepage-btn:hover {
+  background: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.2);
+}
+
+/* Invite overlay styling */
+.invite-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(255, 255, 255, 0.98);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.invite-content {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: clamp(32px, 5vw, 48px);
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px -8px rgb(0 0 0 / 0.15);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.invite-logo {
+  font-size: 64px;
+  animation: float 6s ease-in-out infinite;
+}
+
+#inviteTitle {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: #111111;
+  margin: 0;
+}
+
+.invite-host {
+  font-size: 1.125rem;
+  color: #666666;
+}
+
+#inviteStartBtn {
+  background: #111111;
+  color: #ffffff;
+  font-size: 1.125rem;
+  padding: 16px 32px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+#inviteStartBtn:hover {
+  background: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.2);
 }
 
 /* Mobile-first adjustments */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .homepage-content {
-    padding: 24px 3vw 16px 3vw;
-    max-width: 99vw;
-    border-radius: 16px;
-    gap: 16px;
-  }
-  .homepage-logo {
-    font-size: 34px;
-    margin-bottom: 0;
-  }
-  .homepage-content h1 {
-    font-size: 1.18rem;
-    margin-bottom: 2px;
-    text-align: center;
-  }
-  .homepage-lead {
-    font-size: 0.99rem;
-    margin-bottom: 6px;
-    text-align: center;
-  }
-  .homepage-btn {
-    font-size: 0.99rem;
-    padding: 12px 0;
-    border-radius: 12px;
-    text-align: center;
-  }
-  .homepage-footer {
-    font-size: 0.91rem;
-    margin-top: 10px;
-    text-align: center;
+    gap: 32px;
   }
   .homepage-features {
-    font-size: 0.97rem;
-    gap: 10px;
-    align-items: center;
+    grid-template-columns: 1fr;
+  }
+  .homepage-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  .invite-content {
+    margin: 16px;
+  }
+}
+
+/* Legal overlays styling */
+.legal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(255, 255, 255, 0.98);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.legal-overlay.show {
+  display: flex;
+}
+
+.legal-content {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: clamp(32px, 5vw, 48px);
+  max-width: 800px;
+  width: 100%;
+  margin: 40px auto;
+  position: relative;
+  box-shadow: 0 20px 40px -8px rgb(0 0 0 / 0.15);
+  border: 1px solid #e5e7eb;
+}
+
+.close-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: none;
+  background: #f3f4f6;
+  color: #666666;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #e5e7eb;
+  color: #111111;
+}
+
+.legal-text {
+  color: #374151;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.legal-content h2 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  color: #111111;
+  margin: 0 0 32px 0;
+}
+
+.legal-content h3 {
+  font-size: 1.25rem;
+  color: #111111;
+  margin: 32px 0 16px 0;
+}
+
+.legal-text ul {
+  padding-left: 24px;
+  margin: 16px 0;
+}
+
+.legal-text li {
+  margin-bottom: 8px;
+}
+
+.faq-item {
+  margin-bottom: 32px;
+}
+
+.faq-item h3 {
+  font-size: 1.125rem;
+  margin: 0 0 12px 0;
+}
+
+.faq-item p {
+  margin: 0;
+}
+
+/* Footer links styling */
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  background: none;
+  border: none;
+  color: #666666;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #111111;
+}
+
+.footer-dot {
+  color: #d1d5db;
+  font-size: 0.875rem;
+}
+
+.footer-copyright {
+  color: #666666;
+  font-size: 0.875rem;
+}
+
+/* For very small screens */
+@media (max-width: 360px) {
+  .homepage-content {
+    padding: 24px 16px;
+    gap: 24px;
   }
   .homepage-features li {
-    font-size: 0.99rem;
-    gap: 1px;
-    text-align: center;
-    align-items: center;
+    padding: 20px;
+  }
+  .invite-content {
+    padding: 24px 16px;
+  }
+  .legal-content {
+    padding: 24px 16px;
+    margin: 20px auto;
+  }
+  .close-btn {
+    top: 16px;
+    right: 16px;
   }
 }
 </style>
 <script>
-// Stepper onboarding logic
-const stepData = [
-  {
-    title: 'Welcome to Whispy',
-    icon: '💬',
-    html: `<div class="step-main"><b>No logins. No servers. No data stored.</b></div>`
-  },
-  {
-    title: 'Truly Private',
-    icon: '🔒',
-    html: `<div class="step-main"><b>Messages go directly from you to your peer, never through a server.</b></div>`
-  },
-  {
-    title: 'No Accounts',
-    icon: '🕵️',
-    html: `<div class="step-main"><b>No sign-up, no email, no phone number, ever.</b></div>`
-  },
-  {
-    title: 'No Data Stored',
-    icon: '🚫',
-    html: `<div class="step-main"><b>Nothing is saved or logged. Close the tab, it\'s gone.</b></div>`
-  }
-];
-
+// Page logic with legal overlays
 document.addEventListener('DOMContentLoaded', function() {
   var homepage = document.getElementById('homepage');
   var appMain = document.getElementById('appMain');
-  var stepperTitle = document.getElementById('stepperTitle');
-  var stepperBody = document.getElementById('stepperBody');
   var stepperNext = document.getElementById('stepperNext');
-  // var stepperBack = document.getElementById('stepperBack');
-  var stepperClose = document.getElementById('stepperClose');
-  var logo = document.querySelector('.homepage-logo');
-  var dots = [0,1,2,3].map(i=>document.getElementById('dot'+i));
-  let step = 0;
+  var privacyOverlay = document.getElementById('privacyOverlay');
+  var termsOverlay = document.getElementById('termsOverlay');
+  var faqOverlay = document.getElementById('faqOverlay');
 
-  function renderStep() {
-    // Set title, icon, body
-    stepperTitle.textContent = stepData[step].title;
-    logo.textContent = stepData[step].icon;
-    stepperBody.innerHTML = stepData[step].html;
-    // Progress dots
-    dots.forEach((d,i)=>{
-      d.className = 'step-dot' + (i === step ? ' active' : '') + (i < step ? ' done' : '');
-    });
-    stepperNext.textContent = step === stepData.length-1 ? 'Start Chatting' : 'Next';
-    stepperClose.style.display = 'none';
-  }
-
+  // Start button
   stepperNext.onclick = function() {
-    if (step < stepData.length-1) {
-      step++;
-      renderStep();
-    } else {
-      homepage.style.display = 'none';
-      appMain.style.display = '';
-    }
+    homepage.style.display = 'none';
+    appMain.style.display = '';
   };
-  // Optionally allow Enter/Left/Right
+
+  // Allow Enter key to start
   document.addEventListener('keydown', function(e) {
-    if (homepage.style.display !== 'none') {
-      if ((e.key === 'Enter' || e.keyCode === 13) && step < stepData.length) {
-        stepperNext.click();
-      } else if ((e.key === 'ArrowRight' || e.keyCode === 39) && step < stepData.length-1) {
-        stepperNext.click();
-      }
+    if (homepage.style.display !== 'none' && (e.key === 'Enter' || e.keyCode === 13)) {
+      stepperNext.click();
+    }
+    // Close overlays with Escape key
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      hidePrivacyPolicy();
+      hideTerms();
+      hideFAQ();
     }
   });
-  renderStep();
+
+  // Close overlays when clicking outside content
+  [privacyOverlay, termsOverlay, faqOverlay].forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.classList.remove('show');
+      }
+    });
+  });
 });
+
+// Privacy Policy overlay
+function showPrivacyPolicy() {
+  document.getElementById('privacyOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function hidePrivacyPolicy() {
+  document.getElementById('privacyOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// Terms of Service overlay
+function showTerms() {
+  document.getElementById('termsOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideTerms() {
+  document.getElementById('termsOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// FAQ overlay
+function showFAQ() {
+  document.getElementById('faqOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideFAQ() {
+  document.getElementById('faqOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
 </script>
 </body>
 </html>
