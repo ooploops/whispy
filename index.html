@@ -852,6 +852,44 @@ function appendFile(name, size, url, mine = false, username = null, timestamp = 
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+function getMimeType(filename) {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  const mimeTypes = {
+    // Images
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'avif': 'image/avif',
+    'svg': 'image/svg+xml',
+    // Videos
+    'mp4': 'video/mp4',
+    'webm': 'video/webm',
+    'mov': 'video/quicktime',
+    'avi': 'video/x-msvideo',
+    'mkv': 'video/x-matroska',
+    // Audio
+    'mp3': 'audio/mpeg',
+    'wav': 'audio/wav',
+    'ogg': 'audio/ogg',
+    'm4a': 'audio/mp4',
+    // Documents
+    'pdf': 'application/pdf',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'txt': 'text/plain',
+    // Archives
+    'zip': 'application/zip',
+    'rar': 'application/x-rar-compressed',
+    '7z': 'application/x-7z-compressed',
+    // Others
+    'json': 'application/json',
+    'xml': 'application/xml',
+  };
+  return mimeTypes[ext] || 'application/octet-stream';
+}
+
 function prettyBytes(n) {
   const u = ['B','KB','MB','GB','TB'];
   let i = 0; let v = n;
@@ -980,17 +1018,61 @@ function handleProfile(msg) {
 
 function handleFileStart(msg) {
   const transferId = `${msg.name}-${Date.now()}`;
-  incomingFile = { id: transferId, name: msg.name, type: msg.mimeType || msg.type, size: msg.size, chunks: [], received: 0, username: msg.username, timestamp: msg.timestamp, progressElement: createFileTransferProgress(transferId, msg.name, msg.size) };
+  const mimeType = msg.mimeType || getMimeType(msg.name);
+  incomingFile = { 
+    id: transferId, 
+    name: msg.name, 
+    type: mimeType,
+    size: msg.size, 
+    chunks: [], 
+    received: 0, 
+    username: msg.username, 
+    timestamp: msg.timestamp, 
+    progressElement: createFileTransferProgress(transferId, msg.name, msg.size)
+  };
 }
+
 function handleFileChunk(chunk) {
-  if (!incomingFile) return; incomingFile.chunks.push(new Uint8Array(chunk)); incomingFile.received += chunk.byteLength; updateFileTransferProgress(incomingFile.id, (incomingFile.received / incomingFile.size * 100));
-}
-function handleFileEnd() {
   if (!incomingFile) return;
-  const blob = new Blob(incomingFile.chunks, { type: incomingFile.type });
-  const url = URL.createObjectURL(blob);
-  if (incomingFile.progressElement) incomingFile.progressElement.remove();
-  appendFile(incomingFile.name, blob.size, url, false, incomingFile.username, incomingFile.timestamp, blob.type);
+  
+  // Ensure chunk is Uint8Array
+  const chunkData = chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : chunk;
+  incomingFile.chunks.push(chunkData);
+  incomingFile.received += chunkData.byteLength;
+  
+  // Update progress
+  updateFileTransferProgress(incomingFile.id, (incomingFile.received / incomingFile.size * 100));
+}
+
+function handleFileEnd(msg) {
+  if (!incomingFile) return;
+  
+  try {
+    // Create blob with proper MIME type
+    const blob = new Blob(incomingFile.chunks, { type: incomingFile.type });
+    const url = URL.createObjectURL(blob);
+    
+    // Clean up progress element
+    if (incomingFile.progressElement) {
+      incomingFile.progressElement.remove();
+    }
+    
+    // Append file message with proper metadata
+    appendFile(
+      incomingFile.name,
+      blob.size,
+      url,
+      false,
+      incomingFile.username,
+      incomingFile.timestamp,
+      incomingFile.type
+    );
+  } catch (error) {
+    console.error('Error handling file:', error);
+    appendSys(`❌ Failed to process "${incomingFile.name}": ${error.message}`);
+  }
+  
+  // Clear state
   incomingFile = null;
 }
 
@@ -1003,43 +1085,38 @@ function sendText() {
 
 async function sendFile(file) {
   if (!file || !conn) return;
+
+  // Determine proper MIME type
+  const mimeType = file.type || getMimeType(file.name);
   
   // Create local preview immediately
-  const localUrl = URL.createObjectURL(file);
-  appendFile(file.name, file.size, localUrl, true, currentUsername, null, file.type);
+  const localUrl = URL.createObjectURL(new Blob([await file.arrayBuffer()], { type: mimeType }));
+  appendFile(file.name, file.size, localUrl, true, currentUsername, null, mimeType);
   
   // Notify peer about incoming file
   conn.send(JSON.stringify({
     type: 'fileStart',
     name: file.name,
-    mimeType: file.type,
+    mimeType: mimeType,
     size: file.size,
     username: currentUsername,
     timestamp: getTimestamp()
   }));
 
-  // Stream the file in chunks
-  const reader = file.stream().getReader();
-  let totalSent = 0;
+  // Read file as ArrayBuffer for reliable binary transfer
+  const buffer = await file.arrayBuffer();
+  const data = new Uint8Array(buffer);
+  let offset = 0;
   
   try {
-    while (true) {
-      const {done, value} = await reader.read();
-      if (done) break;
+    while (offset < data.length) {
+      const chunk = data.slice(offset, offset + CHUNK_SIZE);
+      conn.send(chunk.buffer);
+      offset += chunk.length;
       
-      // Send chunks with progress tracking
-      let offset = 0;
-      while (offset < value.byteLength) {
-        const chunkSize = Math.min(CHUNK_SIZE, value.byteLength - offset);
-        const chunk = value.buffer.slice(offset, offset + chunkSize);
-        conn.send(chunk);
-        totalSent += chunk.byteLength;
-        offset += chunkSize;
-        
-        // Throttle large files
-        if (totalSent > 1024 * 1024) {
-          await new Promise(r => setTimeout(r, 50));
-        }
+      // Basic throttling for large files
+      if (offset > 1024 * 1024 && offset % (CHUNK_SIZE * 10) === 0) {
+        await new Promise(r => setTimeout(r, 30));
       }
     }
     
@@ -1047,7 +1124,8 @@ async function sendFile(file) {
     conn.send(JSON.stringify({
       type: 'fileEnd',
       name: file.name,
-      size: totalSent
+      size: file.size,
+      mimeType: mimeType
     }));
     
   } catch (error) {
