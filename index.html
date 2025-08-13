@@ -487,8 +487,11 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
         <button onclick="showTerms()" class="footer-link">Terms of Service</button>
         <span class="footer-dot">•</span>
         <button onclick="showFAQ()" class="footer-link">FAQ</button>
+        
       </div>
-      <div class="footer-copyright">Made with privacy in mind • No data stored • Open source</div>
+      <a href="https://buymeacoffee.com/whispy" target="_blank" rel="noopener" class="footer-link">☕️ Buy me a coffee</a>
+      <div></div><br>
+      <div class="footer-copyright">© Whispy 2025</div>
     </div>
 
     <!-- Privacy Policy Overlay -->
@@ -720,6 +723,11 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
           <button id="sendBtn" class="composer-btn send-btn" title="Send" disabled>➤</button>
           <input id="fileInput" type="file" class="hidden" />
         </div>
+      </div>
+      <div class="chat-footer">
+
+        <span class="footer-text">Made With ❤️ in LA</span><br>
+        <a href="https://buymeacoffee.com/whispy" target="_blank" rel="noopener" class="bmc-link">☕️ Buy me a coffee</a>
       </div>
     </section>
   </div>
@@ -1992,6 +2000,29 @@ inviteStartBtn.addEventListener('click', () => {
   gap: 8px;
   margin-bottom: 12px;
   flex-wrap: wrap;
+}
+
+/* Chat footer */
+.chat-footer {
+  padding: 8px 16px;
+  text-align: center;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.bmc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.bmc-link:hover {
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .footer-link {
