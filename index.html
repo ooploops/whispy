@@ -945,12 +945,28 @@ function createPeer(id) {
 }
 
 function hostRoom(code) {
-  isHost = true; roomCode = code; setStatus('Hosting…');
+  isHost = true;
+  roomCode = code;
+  setStatus('Hosting…');
+  
+  // Save host name for invite overlay
+  try { 
+    localStorage.setItem('whisper-last-host', currentUsername);
+  } catch{}
+  
   createPeer(code);
   const link = `${location.origin}${location.pathname}#${encodeURIComponent(code)}`;
-  linkOut.value = link; roomInput.value = code; history.replaceState(null,'',`#${encodeURIComponent(code)}`); copy(link);
+  linkOut.value = link;
+  roomInput.value = code;
+  history.replaceState(null, '', `#${encodeURIComponent(code)}`);
+  copy(link);
+  
+  // Update the invite overlay with current username
+  inviteHostName.textContent = currentUsername;
+  
   appendSys('Room created! Share your link: ' + code);
-  setStatus('Waiting for guest'); updateUI(false);
+  setStatus('Waiting for guest');
+  updateUI(false);
 }
 
 function joinRoom(code) {
@@ -967,11 +983,24 @@ function joinRoom(code) {
 function handleConnection(connection) {
   conn = connection;
   connection.on('open', () => {
-    appendSys(isHost ? 'User joined the room' : 'Successfully connected');
+    if (isHost) {
+      appendSys('User joined the room');
+      // Update host profile in local UI immediately
+      peerProfile = { name: currentUsername, avatar: myAvatarUrl };
+      updateContactStrip();
+    } else {
+      appendSys('Successfully connected');
+    }
     setStatus('Connected','connected');
     updateUI(true);
     // Share my profile (name + avatar) immediately
-    try { conn.send(JSON.stringify({ type: 'profile', name: currentUsername, avatar: myAvatarUrl })); } catch{}
+    try { 
+      conn.send(JSON.stringify({ 
+        type: 'profile', 
+        name: currentUsername, 
+        avatar: myAvatarUrl 
+      })); 
+    } catch{}
   });
   connection.on('data', onData);
   connection.on('close', () => { appendSys('Connection ended'); setStatus('Disconnected'); updateUI(false); conn = null; peerProfile = { name: 'Not connected', avatar: 'https://picsum.photos/seed/placeholder/96' }; updateContactStrip(); });
@@ -1209,11 +1238,19 @@ window.addEventListener('load', () => {
   if (code) {
     roomInput.value = code;
     appendSys(`Detected room link: ${code}`);
+    
     // If joining via link, show invite overlay before joining
     setTimeout(() => {
       if (!peer) {
         // Try to get host name from localStorage (if available)
         let hostName = localStorage.getItem('whisper-last-host') || 'Anonymous';
+        
+        // Update peer profile immediately for host name
+        if (hostName !== 'Anonymous') {
+          peerProfile.name = hostName;
+          updateContactStrip();
+        }
+        
         showInviteOverlay(hostName);
         inviteStartBtn.onclick = function() {
           hideInviteOverlay();
@@ -1243,11 +1280,11 @@ inviteStartBtn.addEventListener('click', () => {
   document.getElementById('appMain').style.display = '';
 });
 
-// Initialize
-updateUI(false);
-appendSys('Welcome to Whispy!');
-usernameInput.focus();
-usernameInput.select();
+  // Initialize
+  updateUI(false);
+  appendSys('Welcome to Whispy!');
+  usernameInput.focus();
+  usernameInput.select();
 
 </script>
 <style>
