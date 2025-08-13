@@ -1046,8 +1046,18 @@ function handleProfile(msg) {
 }
 
 function handleFileStart(msg) {
+  console.log('File transfer starting:', msg);
+  
   const transferId = `${msg.name}-${Date.now()}`;
   const mimeType = msg.mimeType || getMimeType(msg.name);
+  
+  console.log('File transfer details:', {
+    transferId,
+    mimeType,
+    originalMimeType: msg.mimeType,
+    fallbackMimeType: getMimeType(msg.name)
+  });
+  
   incomingFile = { 
     id: transferId, 
     name: msg.name, 
@@ -1059,35 +1069,73 @@ function handleFileStart(msg) {
     timestamp: msg.timestamp, 
     progressElement: createFileTransferProgress(transferId, msg.name, msg.size)
   };
+  
+  console.log('Incoming file object created:', incomingFile);
 }
 
 function handleFileChunk(chunk) {
-  if (!incomingFile) return;
-  
-  // Always convert chunk to Uint8Array for consistent handling
-  let chunkData;
-  if (chunk instanceof ArrayBuffer) {
-    chunkData = new Uint8Array(chunk);
-  } else if (chunk instanceof Uint8Array) {
-    chunkData = chunk;
-  } else {
-    console.error('Invalid chunk type received');
+  if (!incomingFile) {
+    console.warn('Received chunk but no active file transfer');
     return;
   }
   
-  incomingFile.chunks.push(chunkData);
-  incomingFile.received += chunkData.byteLength;
+  console.log('Received chunk:', {
+    chunkType: chunk.constructor.name,
+    chunkByteLength: chunk.byteLength || chunk.length,
+    isArrayBuffer: chunk instanceof ArrayBuffer,
+    isUint8Array: chunk instanceof Uint8Array
+  });
   
-  // Update progress
-  updateFileTransferProgress(incomingFile.id, (incomingFile.received / incomingFile.size * 100));
+  // Always convert chunk to Uint8Array for consistent handling
+  let chunkData;
+  try {
+    if (chunk instanceof ArrayBuffer) {
+      chunkData = new Uint8Array(chunk);
+      console.log('Converted ArrayBuffer to Uint8Array');
+    } else if (chunk instanceof Uint8Array) {
+      chunkData = chunk;
+      console.log('Using chunk as Uint8Array directly');
+    } else {
+      console.error('Invalid chunk type received:', typeof chunk);
+      return;
+    }
+    
+    incomingFile.chunks.push(chunkData);
+    incomingFile.received += chunkData.byteLength;
+    
+    console.log('Chunk processed:', {
+      chunksReceived: incomingFile.chunks.length,
+      bytesReceived: incomingFile.received,
+      totalExpected: incomingFile.size,
+      progress: ((incomingFile.received / incomingFile.size) * 100).toFixed(1) + '%'
+    });
+    
+    // Update progress
+    updateFileTransferProgress(incomingFile.id, (incomingFile.received / incomingFile.size * 100));
+    
+  } catch (error) {
+    console.error('Error processing chunk:', error);
+  }
 }
 
 function handleFileEnd(msg) {
-  if (!incomingFile) return;
+  if (!incomingFile) {
+    console.warn('Received fileEnd but no active file transfer');
+    return;
+  }
+  
+  console.log('File transfer ending:', {
+    expectedSize: incomingFile.size,
+    receivedSize: incomingFile.received,
+    chunksReceived: incomingFile.chunks.length
+  });
   
   try {
+    console.log('Beginning chunk concatenation...');
     // Concatenate all chunks into a single Uint8Array
     const totalLength = incomingFile.chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+    console.log('Calculated total length:', totalLength);
+    
     const combinedArray = new Uint8Array(totalLength);
     let offset = 0;
     
@@ -1096,9 +1144,21 @@ function handleFileEnd(msg) {
       offset += chunk.length;
     }
     
+    console.log('Chunks combined:', {
+      combinedLength: combinedArray.length,
+      offset,
+      mimeType: incomingFile.type
+    });
+    
     // Create blob with proper MIME type and create URL
     const blob = new Blob([combinedArray], { type: incomingFile.type });
+    console.log('Blob created:', {
+      size: blob.size,
+      type: blob.type
+    });
+    
     const url = URL.createObjectURL(blob);
+    console.log('Blob URL created:', url);
     
     // Remove progress element
     if (incomingFile.progressElement) {
@@ -1116,8 +1176,15 @@ function handleFileEnd(msg) {
       incomingFile.type
     );
     
+    console.log('File transfer completed successfully');
+    
   } catch (error) {
-    console.error('Error handling file:', error);
+    console.error('Error handling file completion:', {
+      error: error,
+      errorName: error.name,
+      errorMessage: error.message,
+      stack: error.stack
+    });
     appendSys(`❌ Failed to process "${incomingFile.name}": ${error.message}`);
   }
   
@@ -1132,34 +1199,72 @@ function sendText() {
 }
 
 async function sendFile(file) {
-  if (!file || !conn) return;
+  if (!file || !conn) {
+    console.log('File sharing abort:', { file: !!file, connection: !!conn });
+    return;
+  }
   
   try {
+    console.log('Starting file send:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified
+    });
+    
     // Create local preview immediately using the actual file
-    const localBlob = new Blob([file], { type: file.type });
+    console.log('Creating local preview...');
+    const fileArrayBuffer = await file.arrayBuffer();
+    console.log('File read as ArrayBuffer:', { byteLength: fileArrayBuffer.byteLength });
+    
+    const localBlob = new Blob([fileArrayBuffer], { type: file.type });
+    console.log('Local blob created:', { 
+      size: localBlob.size, 
+      type: localBlob.type 
+    });
+    
     const localUrl = URL.createObjectURL(localBlob);
+    console.log('Local URL created:', localUrl);
     
     appendFile(file.name, file.size, localUrl, true, currentUsername, null, file.type);
+    console.log('Local preview appended to chat');
     
     // Notify peer about incoming file
-    conn.send(JSON.stringify({
+    const fileStartMsg = {
       type: 'fileStart',
       name: file.name,
       mimeType: file.type || getMimeType(file.name),
       size: file.size,
       username: currentUsername,
       timestamp: getTimestamp()
-    }));
+    };
+    console.log('Sending fileStart message:', fileStartMsg);
+    conn.send(JSON.stringify(fileStartMsg));
 
     // Read and send file in chunks
-    const buffer = await file.arrayBuffer();
-    const data = new Uint8Array(buffer);
+    const data = new Uint8Array(fileArrayBuffer);
     let offset = 0;
+    let chunkCount = 0;
+    
+    console.log('Starting chunk transfer:', {
+      totalSize: data.length,
+      chunkSize: CHUNK_SIZE,
+      estimatedChunks: Math.ceil(data.length / CHUNK_SIZE)
+    });
     
     while (offset < data.length) {
       const chunk = data.slice(offset, offset + CHUNK_SIZE);
       conn.send(chunk);
       offset += chunk.length;
+      chunkCount++;
+      
+      if (chunkCount % 10 === 0) {
+        console.log('Transfer progress:', {
+          chunksSent: chunkCount,
+          bytesSent: offset,
+          progress: ((offset / data.length) * 100).toFixed(1) + '%'
+        });
+      }
       
       // Throttle large files
       if (offset > 1024 * 1024) {
@@ -1168,14 +1273,27 @@ async function sendFile(file) {
     }
     
     // Signal completion
-    conn.send(JSON.stringify({
+    const fileEndMsg = {
       type: 'fileEnd',
       name: file.name,
       size: file.size
-    }));
+    };
+    console.log('Sending fileEnd message:', fileEndMsg);
+    conn.send(JSON.stringify(fileEndMsg));
+    
+    console.log('File send completed successfully:', {
+      totalChunks: chunkCount,
+      totalBytes: offset,
+      fileName: file.name
+    });
     
   } catch (error) {
-    console.error('Error sending file:', error);
+    console.error('Error sending file:', {
+      error: error,
+      errorName: error.name,
+      errorMessage: error.message,
+      stack: error.stack
+    });
     appendSys(`❌ Failed to send "${file.name}": ${error.message}`);
   }
 }
