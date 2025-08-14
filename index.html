@@ -102,6 +102,10 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       background: var(--accent-green);
       animation: pulse 2s infinite;
     }
+    .conn-dot.waiting { 
+      background: #fbbf24;
+      animation: pulse 2s infinite;
+    }
     .conn-dot.disconnected { 
       background: var(--accent-red);
       animation: pulse 2s infinite;
@@ -112,6 +116,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       100% { box-shadow: 0 0 0 0 rgba(var(--dot-color, 16, 185, 129), 0); }
     }
     .conn-dot.connected { --dot-color: 16, 185, 129; }
+    .conn-dot.waiting { --dot-color: 251, 191, 36; }
     .conn-dot.disconnected { --dot-color: 239, 68, 68; }
 
     .header-actions { display:flex; align-items:center; gap:8px; }
@@ -296,9 +301,9 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     .messages::-webkit-scrollbar-thumb { background: rgba(127,127,127,.25); border-radius: 3px; }
 
     .message { max-width: min(72%, 760px); padding: 12px 14px; border-radius: 18px; font-size: 14px; line-height: 1.45; position: relative; animation: messageSlide .25s ease-out; margin-bottom: 2px; word-wrap: break-word; }
-    .message-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size: 11px; opacity:.75; }
+    .message-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size: 11px; opacity:.85; }
     .username { font-weight: 700; color: var(--accent-blue); }
-    .timestamp { color: var(--text-tertiary); font-size: 10px; }
+    .timestamp { color: var(--text-secondary); font-size: 10px; }
     .message-content { white-space: pre-wrap; word-break: break-word; }
     @keyframes messageSlide { from { opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;} }
     .message.incoming { align-self:flex-start; background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-primary); border-bottom-left-radius: 8px; }
@@ -308,7 +313,152 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       color: white;
       opacity: 0.85;
     }
+    /* Ensure multimedia message headers are always visible */
+    .message.incoming .message-header .username { color: var(--accent-blue); }
+    .message.incoming .message-header .timestamp { color: var(--text-secondary); }
+    .message.outgoing .message-header .username { color: #333333; }
+    .message.outgoing .message-header .timestamp { color: #333333; }
     .message.system { align-self:center; background: var(--bg-accent); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 13px; padding: 8px 16px; max-width: 92%; text-align:center; border-radius: 20px; margin: 8px 0; }
+
+    /* Modern multimedia message styles */
+    .multimedia-container {
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      max-width: min(400px, 90vw);
+      margin: 1px 0;
+    }
+
+    .multimedia-content {
+      position: relative;
+    }
+
+    .multimedia-preview {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-height: 300px;
+      object-fit: cover;
+    }
+
+    .multimedia-info {
+      padding: 12px 16px;
+      background: var(--bg-accent);
+    }
+
+    .multimedia-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .multimedia-title {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      margin-right: 8px;
+    }
+
+    .multimedia-size {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+    }
+
+    .multimedia-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .multimedia-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--accent-blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .multimedia-btn:hover {
+      background: var(--accent-orange);
+      transform: translateY(-1px);
+    }
+
+    .multimedia-btn.secondary {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .multimedia-btn.secondary:hover {
+      background: var(--border-subtle);
+    }
+
+    /* Compact file message for non-media files */
+    .file-message-compact {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-accent);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      max-width: min(320px, 90vw);
+    }
+
+    .file-info-compact {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name-compact {
+      font-weight: 500;
+      font-size: 14px;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-details {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .file-download-btn {
+      padding: 4px 8px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .file-download-btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
 
     .file-message { display:flex; align-items:center; gap:12px; padding: 12px 14px; background: var(--bg-accent); border: 1px solid var(--border-subtle); border-radius: 14px; }
     .file-icon { width: 36px; height: 36px; border-radius: 8px; display:grid; place-items:center; font-size:18px; background: linear-gradient(135deg, var(--accent-orange), #ff6b3d); color: white; }
@@ -355,6 +505,8 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     .composer-btn { background: transparent; border:none; color: var(--text-secondary); cursor:pointer; padding: 6px; border-radius: 10px; transition: transform .15s ease, background .2s ease, color .2s ease; width: 36px; height: 36px; display:grid; place-items:center; }
     .composer-btn:hover:not(:disabled) { color: var(--text-primary); background: var(--bg-accent); transform: translateY(-1px); }
     .composer-btn:disabled { opacity: .35; cursor:not-allowed; }
+    .composer-btn.active { background: var(--accent-blue) !important; color: white !important; }
+    .composer-btn.recording { background: var(--accent-red) !important; color: white !important; animation: pulse 1.5s infinite; }
     .send-btn { background: var(--accent-blue) !important; color: white !important; border-radius: 12px; }
     .send-btn:hover:not(:disabled) { background: var(--accent-blue-hover) !important; transform: scale(1.05); }
     #fileBtn { font-size: 1.2em; margin-right: 4px; }
@@ -475,6 +627,84 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     .loading-dots span:nth-child(2) { animation-delay: -.16s; }
     @keyframes loadingDot { 0%,80%,100%{opacity:.4;} 40%{opacity:1;} }
 
+    /* Voice Message Player */
+    .voice-message {
+      background: var(--bg-accent);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px;
+      max-width: min(380px, 90vw);
+      margin: 4px 0;
+    }
+    .voice-player {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .voice-play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .voice-play-btn:hover {
+      background: var(--accent-blue-hover);
+      transform: scale(1.05);
+    }
+    .voice-play-btn.playing {
+      background: var(--accent-red);
+    }
+    .voice-progress-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .voice-progress-bar {
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+    }
+    .voice-progress-fill {
+      height: 100%;
+      background: var(--accent-blue);
+      border-radius: 3px;
+      transition: width 0.1s ease;
+      width: 0%;
+    }
+    .voice-time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+    .voice-transcript {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      font-style: italic;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 12px;
+      margin-top: 8px;
+    }
+    .voice-transcript.empty {
+      opacity: 0.6;
+    }
+
     /* Invite Overlay Styles */
 .invite-overlay {
   position: fixed;
@@ -533,11 +763,15 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     <button class="stepper-close" id="stepperClose" title="Close" style="display:none">×</button>
     <div class="homepage-logo">💬</div>
     <h1>Whispy</h1>
-    <p class="homepage-lead">Truly private messaging & media</p>
+    <p class="homepage-lead">Truly private messaging & file sharing</p>
     <ul class="homepage-features">
       <li>
         <strong>Totally Private 🔒</strong>
         <p>Direct encrypted messaging with no sneaky servers.</p>
+      </li>
+      <li>
+        <strong>Voice Messages 🎤</strong>
+        <p>Send voice memos and use voice dictation for hands-free typing.</p>
       </li>
       <li>
         <strong>Instant Setup ⚡️</strong>
@@ -694,6 +928,11 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
           </div>
 
           <div class="faq-item">
+            <h3>How do voice features work?</h3>
+            <p>Whispy supports voice dictation (speech-to-text) and voice memo recording. Use the microphone button to dictate messages or the recording button to send voice memos directly.</p>
+          </div>
+
+          <div class="faq-item">
             <h3>What happens to my messages?</h3>
             <p>Messages exist only in your browser during the active chat session. Once you close the tab, all data is permanently deleted.</p>
           </div>
@@ -729,7 +968,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       <div class="contact-info-centered">
         <div style="position: relative;">
           <img id="contactAvatar" class="avatar" alt="Contact avatar" src="https://picsum.photos/seed/placeholder/96" />
-          <span id="connDot" class="conn-dot disconnected" title="Connection status"></span>
+          <span id="connDot" class="conn-dot waiting" title="Connection status"></span>
         </div>
         <div class="contact-meta">
           <span id="contactName" class="contact-name">Connecting</span>
@@ -784,6 +1023,8 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       <div class="composer">
         <div class="composer-input">
           <textarea id="textInput" class="message-input" placeholder="Type a message…" disabled rows="1"></textarea>
+          <button id="voiceBtn" class="composer-btn" title="Voice dictation" disabled>🎤</button>
+          <button id="voiceMemoBtn" class="composer-btn" title="Record voice memo" disabled>🎙️</button>
           <button id="fileBtn" class="composer-btn" title="Send file" disabled>📎</button>
           <button id="sendBtn" class="composer-btn send-btn" title="Send" disabled>➤</button>
           <input id="fileInput" type="file" class="hidden" />
@@ -824,6 +1065,8 @@ const debugInfo = $('debugInfo');
 const textInput = $('textInput');
 const sendBtn = $('sendBtn');
 const fileBtn = $('fileBtn');
+const voiceBtn = $('voiceBtn');
+const voiceMemoBtn = $('voiceMemoBtn');
 const usernameInput = $('usernameInput');
 const themeToggle = $('themeToggle');
 const sidebar = $('sidebar');
@@ -839,6 +1082,14 @@ let fileTransfers = new Map();
 let myAvatarSeed = null;
 let myAvatarUrl = '';
 let peerProfile = { name: 'Connecting', avatar: 'https://picsum.photos/seed/placeholder/96' };
+
+// Voice and audio recording variables
+let isRecording = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let recognition = null;
+let isListening = false;
+let microphoneStream = null; // Persistent microphone stream
 
 // Theme — respect system, remember choice
 (function initTheme(){
@@ -917,19 +1168,22 @@ function setStatus(txt, type = 'default') {
   statusEl.textContent = displayText;
   statusEl.className = 'status-badge' + (type !== 'default' ? ' ' + type : '');
 
-  // Update header dot
+  // Update header dot with new waiting state
   if (connDot) {
+    // Remove all states first
+    connDot.classList.remove('connected', 'waiting', 'disconnected');
+    
     if (type === 'connected') {
       connDot.classList.add('connected');
-      connDot.classList.remove('disconnected');
       connDot.title = 'Connected';
-    } else if (type === 'error') {
-      connDot.classList.remove('connected');
+    } else if (type === 'error' || txt.includes('Disconnected') || txt.includes('Error')) {
       connDot.classList.add('disconnected');
       connDot.title = 'Disconnected';
+    } else if (txt.includes('Waiting') || txt.includes('Creating')) {
+      connDot.classList.add('waiting');
+      connDot.title = 'Waiting for connection...';
     } else {
-      connDot.classList.remove('connected');
-      connDot.classList.add('disconnected');
+      connDot.classList.add('waiting');
       connDot.title = 'Connecting...';
     }
   }
@@ -1019,7 +1273,7 @@ function updateFileTransferProgress(transferId, progress) {
   }
 }
 
-function appendFile(name, size, url, mine = false, username = null, timestamp = null, mimeType = '') {
+function appendFile(name, size, url, mine = false, username = null, timestamp = null, mimeType = '', transcript = '') {
   // If this is an incoming message, update peerProfile name and avatar if present
   if (!mine) {
     if (username && peerProfile.name !== username) {
@@ -1035,6 +1289,7 @@ function appendFile(name, size, url, mine = false, username = null, timestamp = 
   // Header with username and timestamp
   const header = document.createElement('div');
   header.className = 'message-header';
+  header.style.padding = '0 0 4px 0'; // Minimal padding below header
   header.innerHTML = `
     <span class="username">${escapeHTML(username || (mine ? currentUsername : 'Guest'))}</span>
     <span class="timestamp">${timestamp || getTimestamp()}</span>
@@ -1047,9 +1302,29 @@ function appendFile(name, size, url, mine = false, username = null, timestamp = 
   // Determine file type and icon
   const isImage = /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(name) || mimeType.startsWith('image/');
   const isVideo = /\.(mp4|webm|mov|avi|mkv)$/i.test(name) || mimeType.startsWith('video/');
-  const isAudio = /\.(mp3|wav|ogg|m4a)$/i.test(name) || mimeType.startsWith('audio/');
+  const isAudio = /\.(mp3|wav|ogg|m4a|webm)$/i.test(name) || mimeType.startsWith('audio/');
+  let isVoiceMemo = name.includes('voice-memo-') || (transcript && transcript.trim().length > 0);
+  
+  // Force voice memo detection for files with voice-memo in name
+  if (name.includes('voice-memo-')) {
+    console.log('Detected voice memo by filename:', name);
+  }
+  
+  // TEMPORARY: Force all webm audio to be voice memos for testing
+  if (isAudio && (mimeType.includes('webm') || name.includes('.webm'))) {
+    console.log('Forcing webm audio as voice memo for testing');
+    isVoiceMemo = true; // Uncomment this line to test
+  }
   const isPDF = /\.pdf$/i.test(name) || mimeType === 'application/pdf';
   const isArchive = /\.(zip|rar|7z|tar|gz)$/i.test(name);
+  
+  console.log('File type detection:', {
+    name,
+    isAudio,
+    isVoiceMemo,
+    transcript: transcript ? `"${transcript.substring(0, 50)}..."` : 'none',
+    mimeType
+  });
   
   let fileIcon = '📄'; // Default
   if (isImage) fileIcon = '🖼️';
@@ -1060,111 +1335,100 @@ function appendFile(name, size, url, mine = false, username = null, timestamp = 
 
   // Handle different file types
   if (isImage) {
-    wrap.style.margin = '-8px -8px -4px -8px'; // Reduce padding around image
+    // Make the entire message container just the image with header
+    d.style.padding = '0';
+    d.style.background = 'transparent';
+    d.style.border = 'none';
+    header.style.padding = '0';
+    header.style.marginBottom = '0'; // Remove margin that causes micro lines
     wrap.innerHTML = `
-      <a href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener" style="display:block; cursor:pointer; text-decoration:none;">
+      <a href="${url}" download="${escapeHTML(name)}" style="display: block; cursor: pointer; text-decoration: none; color: inherit; border: none; outline: none; margin: 0; padding: 0; line-height: 0;">
         <img src="${url}" alt="${escapeHTML(name)}" 
-             style="max-width:min(320px, 90vw); max-height:240px; border-radius:10px; display:block; margin-bottom:2px;">
-        <div style="font-size: 11px; color: var(--text-tertiary); padding: 0 8px 4px 8px;">
-          ${escapeHTML(name)} • ${prettyBytes(size)}
-        </div>
+             style="width: 100%; max-width: min(400px, 95vw); max-height: 300px; border-radius: 12px; display: block; object-fit: cover; margin: 0; padding: 0; border: none; outline: none; vertical-align: top;">
       </a>
     `;
   } else if (isVideo) {
+    // Make the entire message container just the video with header
+    d.style.padding = '0';
+    d.style.background = 'transparent';
+    d.style.border = 'none';
+    header.style.padding = '0';
+    header.style.marginBottom = '0'; // Remove margin that causes micro lines
     wrap.innerHTML = `
-      <div class="file-message">
-        <div class="file-icon">${fileIcon}</div>
-        <div class="file-info">
-          <div class="file-name">
-            <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
-              ${escapeHTML(name)}
-            </a>
+      <video src="${url}" controls style="width: 100%; max-width: min(400px, 95vw); border-radius: 12px; display: block; margin: 0; padding: 0; border: none; outline: none; vertical-align: top;">
+        Your browser does not support the video tag.
+      </video>
+    `;
+  } else if (isAudio && isVoiceMemo) {
+    // Custom voice memo player
+    console.log('Rendering voice memo player:', {
+      name,
+      isVoiceMemo,
+      transcript,
+      mimeType
+    });
+    
+    const playerId = `voice-player-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const transcriptText = transcript || 'No transcript available';
+    
+    wrap.innerHTML = `
+      <div class="voice-message">
+        <div class="voice-player">
+          <button class="voice-play-btn" data-player-id="${playerId}">
+            ▶️
+          </button>
+          <div class="voice-progress-container">
+            <div class="voice-progress-bar" data-player-id="${playerId}">
+              <div class="voice-progress-fill"></div>
+            </div>
+            <div class="voice-time">
+              <span class="current-time">0:00</span>
+              <span class="total-time">0:00</span>
+            </div>
           </div>
-          <div class="file-size">${prettyBytes(size)}</div>
         </div>
-      </div>
-      <div style="margin-top:8px;">
-        <video src="${url}" controls style="max-width:min(320px, 90vw); border-radius:10px;"></video>
+        <div class="voice-transcript ${transcript ? '' : 'empty'}">
+          ${escapeHTML(transcriptText)}
+        </div>
+        <audio preload="metadata" data-player-id="${playerId}" style="display: none;">
+          <source src="${url}" type="${mimeType}">
+        </audio>
       </div>
     `;
-  } else {
-    wrap.innerHTML = `
-      <div class="file-message">
-        <div class="file-icon">${fileIcon}</div>
-        <div class="file-info">
-          <div class="file-name">
-            <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
-              ${escapeHTML(name)}
-            </a>
-          </div>
-          <div class="file-size">${prettyBytes(size)}</div>
-        </div>
-      </div>
-    `;
-  
-  if (isImage) {
-    // For images, just show the clickable preview
-    wrap.innerHTML = `
-      <a href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener" style="display:block; cursor:pointer;">
-        <img src="${url}" alt="${escapeHTML(name)}" 
-             style="max-width:min(320px, 90vw); max-height:240px; border-radius:10px; display:block;">
-        <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px;">
-          ${escapeHTML(name)} • ${prettyBytes(size)}
-        </div>
-      </a>
-    `;
-  } else if (isVideo) {
-    // For videos, show file info and player
-    wrap.innerHTML = `
-      <div class="file-message">
-        <div class="file-icon">${fileIcon}</div>
-        <div class="file-info">
-          <div class="file-name">
-            <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
-              ${escapeHTML(name)}
-            </a>
-          </div>
-          <div class="file-size">${prettyBytes(size)}</div>
-        </div>
-      </div>
-      <div style="margin-top:8px;">
-        <video src="${url}" controls style="max-width:min(320px, 90vw); border-radius:10px;"></video>
-      </div>
-    `;
+    
+    // Initialize custom player after DOM is updated
+    setTimeout(() => initVoicePlayer(playerId), 0);
+    
   } else if (isAudio) {
-    // For audio, show file info and player
+    // Clean audio player - just the player with header
+    d.style.padding = '8px 12px';
+    d.style.background = 'var(--bg-elevated)';
+    d.style.border = '1px solid var(--border-subtle)';
     wrap.innerHTML = `
-      <div class="file-message">
-        <div class="file-icon">${fileIcon}</div>
-        <div class="file-info">
-          <div class="file-name">
-            <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
-              ${escapeHTML(name)}
-            </a>
-          </div>
-          <div class="file-size">${prettyBytes(size)}</div>
-        </div>
-      </div>
-      <div style="margin-top:8px;">
-        <audio src="${url}" controls style="width:100%;"></audio>
-      </div>
+      <audio src="${url}" controls style="width: 100%; max-width: min(400px, 95vw);" preload="metadata">
+        Your browser does not support the audio element.
+      </audio>
     `;
   } else {
-    // For other files, show just the file info row
+    // File card - minimal padding
+    d.style.padding = '8px 12px';
+    d.style.background = 'var(--bg-elevated)';
+    d.style.border = '1px solid var(--border-subtle)';
     wrap.innerHTML = `
-      <div class="file-message">
-        <div class="file-icon">${fileIcon}</div>
-        <div class="file-info">
-          <div class="file-name">
-            <a class="file-link" href="${url}" download="${escapeHTML(name)}" target="_blank" rel="noopener">
+      <a href="${url}" download="${escapeHTML(name)}" style="text-decoration: none; color: inherit; display: block;">
+        <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <div style="font-size: 18px;">${fileIcon}</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 500; font-size: 14px; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               ${escapeHTML(name)}
-            </a>
+            </div>
+            <div style="font-size: 12px; color: var(--text-tertiary);">
+              ${prettyBytes(size)}
+            </div>
+            </div>
           </div>
-          <div class="file-size">${prettyBytes(size)}</div>
-        </div>
-      </div>
+      </a>
     `;
-  }
   }
 
   d.appendChild(header);
@@ -1261,13 +1525,448 @@ function randCode() {
 }
 
 function updateUI(connected) {
-  textInput.disabled = !connected; sendBtn.disabled = !connected; fileBtn.disabled = !connected;
-  $('createBtn').disabled = connected; $('joinBtn').disabled = connected;
+  textInput.disabled = !connected; 
+  sendBtn.disabled = !connected; 
+  fileBtn.disabled = !connected;
+  voiceBtn.disabled = !connected;
+  voiceMemoBtn.disabled = !connected;
+  $('createBtn').disabled = connected; 
+  $('joinBtn')?.disabled ? ($('joinBtn').disabled = connected) : null;
   if (connected) textInput.focus();
 }
 
 // Auto-resize textarea
 textInput.addEventListener('input', function(){ this.style.height='auto'; this.style.height = Math.min(this.scrollHeight, window.innerHeight*0.3) + 'px'; });
+
+// ---- Voice Dictation & Voice Memo Functions ----
+
+// Initialize Speech Recognition
+function initSpeechRecognition() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    console.log('Speech recognition not supported');
+    voiceBtn.style.display = 'none';
+    return false;
+  }
+  
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  
+  let finalTranscript = '';
+  let interimTranscript = '';
+  
+  recognition.onstart = () => {
+    isListening = true;
+    voiceBtn.classList.add('active');
+    voiceBtn.title = 'Stop dictation';
+    textInput.placeholder = 'Listening...';
+  };
+  
+  recognition.onresult = (event) => {
+    finalTranscript = '';
+    interimTranscript = '';
+    
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript + ' ';
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+    
+    // Update text input with current text + final + interim
+    const currentText = textInput.value.replace(/\s*\[.*?\]\s*$/, ''); // Remove previous interim
+    const newText = currentText + finalTranscript + (interimTranscript ? `[${interimTranscript}]` : '');
+    textInput.value = newText;
+    textInput.dispatchEvent(new Event('input')); // Trigger resize
+  };
+  
+  recognition.onend = () => {
+    isListening = false;
+    voiceBtn.classList.remove('active');
+    voiceBtn.title = 'Voice dictation';
+    textInput.placeholder = 'Type a message…';
+    
+    // Clean up any interim text markers
+    textInput.value = textInput.value.replace(/\s*\[.*?\]\s*$/, '');
+  };
+  
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event.error);
+    isListening = false;
+    voiceBtn.classList.remove('active');
+    voiceBtn.title = 'Voice dictation';
+    textInput.placeholder = 'Type a message…';
+    
+    if (event.error === 'not-allowed') {
+      showToast('Microphone access denied. Please allow microphone access to use voice dictation.', 5000);
+    } else {
+      showToast('Voice recognition error. Please try again.', 3000);
+    }
+  };
+  
+  return true;
+}
+
+// Toggle voice dictation
+async function toggleVoiceDictation() {
+  if (!recognition) {
+    if (!initSpeechRecognition()) {
+      showToast('Voice dictation is not supported in this browser.', 3000);
+      return;
+    }
+  }
+  
+  if (isListening) {
+    recognition.stop();
+  } else {
+    // Ensure we have microphone access before starting speech recognition
+    const stream = await getMicrophoneStream();
+    if (!stream) {
+      return; // getMicrophoneStream already showed error toast
+    }
+    
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Failed to start recognition:', error);
+      showToast('Failed to start voice dictation. Please try again.', 3000);
+    }
+  }
+}
+
+// Get persistent microphone access
+async function getMicrophoneStream() {
+  if (microphoneStream) {
+    return microphoneStream;
+  }
+  
+  try {
+    microphoneStream = await navigator.mediaDevices.getUserMedia({ 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100
+      } 
+    });
+    return microphoneStream;
+  } catch (error) {
+    console.error('Failed to get microphone access:', error);
+    if (error.name === 'NotAllowedError') {
+      showToast('Microphone access denied. Please allow microphone access to use voice features.', 5000);
+    } else {
+      showToast('Failed to access microphone. Voice features not available.', 3000);
+    }
+    return null;
+  }
+}
+
+// Initialize MediaRecorder for voice memos
+async function initMediaRecorder() {
+  try {
+    const stream = await getMicrophoneStream();
+    if (!stream) {
+      return false;
+    }
+    
+    // Check for supported MIME types
+    const mimeTypes = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus',
+      'audio/wav'
+    ];
+    
+    let selectedMimeType = 'audio/webm';
+    for (const mimeType of mimeTypes) {
+      if (MediaRecorder.isTypeSupported(mimeType)) {
+        selectedMimeType = mimeType;
+        break;
+      }
+    }
+    
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: selectedMimeType,
+      audioBitsPerSecond: 128000
+    });
+    
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+      }
+    };
+    
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: selectedMimeType });
+      audioChunks = [];
+      
+      // Don't stop the persistent stream - keep it for reuse
+      
+      // Try to get transcript if speech recognition is available and was listening
+      let transcript = '';
+      if (window.lastRecordingTranscript) {
+        transcript = window.lastRecordingTranscript;
+        window.lastRecordingTranscript = '';
+      }
+      
+      console.log('Voice memo recorded with transcript:', transcript);
+      
+      // Create file-like object and send with transcript
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+      const filename = `voice-memo-${timestamp}.webm`;
+      
+      const file = new File([audioBlob], filename, { 
+        type: selectedMimeType,
+        lastModified: Date.now()
+      });
+      
+      // Store transcript data for this file
+      if (transcript) {
+        file.transcript = transcript;
+      }
+      
+      console.log('Sending voice memo file:', {
+        name: filename,
+        transcript: transcript,
+        hasTranscript: !!transcript
+      });
+      
+      await sendFile(file);
+      
+      // Reset UI
+      isRecording = false;
+      voiceMemoBtn.classList.remove('recording');
+      voiceMemoBtn.title = 'Record voice memo';
+      voiceMemoBtn.textContent = '🎙️';
+      
+      showToast('Voice memo sent!', 2000);
+    };
+    
+    mediaRecorder.onerror = (event) => {
+      console.error('MediaRecorder error:', event.error);
+      showToast('Recording error occurred.', 3000);
+      stopVoiceMemo();
+    };
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize media recorder:', error);
+    
+    if (error.name === 'NotAllowedError') {
+      showToast('Microphone access denied. Please allow microphone access to record voice memos.', 5000);
+    } else {
+      showToast('Failed to access microphone. Voice memos not available.', 3000);
+    }
+    
+    return false;
+  }
+}
+
+// Start voice memo recording
+async function startVoiceMemo() {
+  if (isRecording) {
+    stopVoiceMemo();
+    return;
+  }
+  
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+    const success = await initMediaRecorder();
+    if (!success) return;
+  }
+  
+  try {
+    audioChunks = [];
+    
+    // Start background transcription if available
+    if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const voiceMemoRecognition = new SpeechRecognition();
+      voiceMemoRecognition.continuous = true;
+      voiceMemoRecognition.interimResults = true;
+      voiceMemoRecognition.lang = 'en-US';
+      
+      window.lastRecordingTranscript = '';
+      
+      voiceMemoRecognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            transcript += event.results[i][0].transcript + ' ';
+          }
+        }
+        window.lastRecordingTranscript = (window.lastRecordingTranscript || '') + transcript;
+        console.log('Voice memo transcript update:', window.lastRecordingTranscript);
+      };
+      
+      voiceMemoRecognition.onerror = (event) => {
+        console.warn('Voice memo recognition error:', event.error);
+      };
+      
+      try {
+        voiceMemoRecognition.start();
+        console.log('Started voice memo transcription');
+        
+        // Store reference to stop it later
+        window.currentVoiceMemoRecognition = voiceMemoRecognition;
+      } catch (e) {
+        console.warn('Could not start voice memo transcription:', e);
+      }
+    }
+    
+    mediaRecorder.start(1000); // Collect data every second
+    
+    isRecording = true;
+    voiceMemoBtn.classList.add('recording');
+    voiceMemoBtn.title = 'Stop recording';
+    voiceMemoBtn.textContent = '⏹️';
+    
+    showToast('Recording voice memo... Tap again to stop.', 2000);
+    
+  } catch (error) {
+    console.error('Failed to start recording:', error);
+    showToast('Failed to start recording.', 3000);
+  }
+}
+
+// Stop voice memo recording
+function stopVoiceMemo() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+  
+  // Stop voice memo transcription if it was running
+  if (window.currentVoiceMemoRecognition) {
+    try {
+      window.currentVoiceMemoRecognition.stop();
+      window.currentVoiceMemoRecognition = null;
+      console.log('Stopped voice memo transcription');
+    } catch (e) {
+      console.warn('Error stopping voice memo recognition:', e);
+    }
+  }
+  
+  isRecording = false;
+  voiceMemoBtn.classList.remove('recording');
+  voiceMemoBtn.title = 'Record voice memo';
+  voiceMemoBtn.textContent = '🎙️';
+}
+
+// Check for microphone permission on load
+async function checkMicrophonePermission() {
+  try {
+    const result = await navigator.permissions.query({ name: 'microphone' });
+    
+    if (result.state === 'denied') {
+      voiceBtn.style.opacity = '0.5';
+      voiceMemoBtn.style.opacity = '0.5';
+      voiceBtn.title = 'Microphone access denied';
+      voiceMemoBtn.title = 'Microphone access denied';
+    }
+    
+    result.onchange = () => {
+      if (result.state === 'granted') {
+        voiceBtn.style.opacity = '';
+        voiceMemoBtn.style.opacity = '';
+        voiceBtn.title = 'Voice dictation';
+        voiceMemoBtn.title = 'Record voice memo';
+      } else if (result.state === 'denied') {
+        voiceBtn.style.opacity = '0.5';
+        voiceMemoBtn.style.opacity = '0.5';
+        voiceBtn.title = 'Microphone access denied';
+        voiceMemoBtn.title = 'Microphone access denied';
+      }
+    };
+  } catch (error) {
+    // Permissions API not supported, that's okay
+    console.log('Permissions API not supported');
+  }
+}
+
+// Initialize custom voice player
+function initVoicePlayer(playerId) {
+  const audio = document.querySelector(`audio[data-player-id="${playerId}"]`);
+  const playBtn = document.querySelector(`.voice-play-btn[data-player-id="${playerId}"]`);
+  const progressBar = document.querySelector(`.voice-progress-bar[data-player-id="${playerId}"]`);
+  const progressFill = progressBar.querySelector('.voice-progress-fill');
+  const currentTime = progressBar.parentElement.querySelector('.current-time');
+  const totalTime = progressBar.parentElement.querySelector('.total-time');
+  
+  if (!audio || !playBtn || !progressBar) {
+    console.error('Voice player elements not found for:', playerId);
+    return;
+  }
+  
+  // Format time helper
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+  
+  // Update progress
+  function updateProgress() {
+    if (audio.duration) {
+      const progress = (audio.currentTime / audio.duration) * 100;
+      progressFill.style.width = `${progress}%`;
+      currentTime.textContent = formatTime(audio.currentTime);
+      totalTime.textContent = formatTime(audio.duration);
+    }
+  }
+  
+  // Audio event listeners
+  audio.addEventListener('loadedmetadata', () => {
+    totalTime.textContent = formatTime(audio.duration);
+  });
+  
+  audio.addEventListener('timeupdate', updateProgress);
+  
+  audio.addEventListener('ended', () => {
+    playBtn.textContent = '▶️';
+    playBtn.classList.remove('playing');
+    progressFill.style.width = '0%';
+    audio.currentTime = 0;
+  });
+  
+  audio.addEventListener('error', (e) => {
+    console.error('Audio error:', e);
+    playBtn.textContent = '❌';
+    playBtn.disabled = true;
+  });
+  
+  // Play/pause button
+  playBtn.addEventListener('click', () => {
+    if (audio.paused) {
+      audio.play().then(() => {
+        playBtn.textContent = '⏸️';
+        playBtn.classList.add('playing');
+      }).catch(err => {
+        console.error('Play error:', err);
+        playBtn.textContent = '❌';
+      });
+    } else {
+      audio.pause();
+      playBtn.textContent = '▶️';
+      playBtn.classList.remove('playing');
+    }
+  });
+  
+  // Progress bar click
+  progressBar.addEventListener('click', (e) => {
+    if (audio.duration) {
+      const rect = progressBar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percentage = clickX / rect.width;
+      audio.currentTime = percentage * audio.duration;
+    }
+  });
+  
+  // Preload audio metadata
+  audio.load();
+}
 
 // ---- PeerJS setup ----
 let peer = null; let conn = null; let isHost = false; let roomCode = '';
@@ -1287,7 +1986,14 @@ function createPeer(id) {
   });
   peer.on('error', (err) => { console.error('Peer error:', err); appendSys('⚠️ ' + (err.message || err.type || 'Peer error')); setStatus('Error', 'error'); updateUI(false); });
   peer.on('connection', (connection) => { if (conn) { connection.close(); return; } handleConnection(connection); });
-  peer.on('disconnected', () => { setStatus('Disconnected'); updateUI(false); });
+  peer.on('disconnected', () => { 
+    appendSys('Peer connection lost 📡'); 
+    setStatus('Disconnected', 'error'); 
+    updateUI(false); 
+    conn = null; 
+    peerProfile = { name: 'Not connected', avatar: 'https://picsum.photos/seed/placeholder/96' }; 
+    updateContactStrip(); 
+  });
   return peer;
 }
 
@@ -1313,7 +2019,7 @@ function hostRoom(code) {
   // Show more prominent clipboard notification
   showToast('Room link copied! Share it to start chatting', 4000);
   
-  appendSys('Room created! Share it to start chatting');
+  appendSys('Room link copied! Share it to start chatting');
   setStatus('Waiting');
   updateUI(false);
   
@@ -1355,8 +2061,20 @@ function handleConnection(connection) {
     } catch{}
   });
   connection.on('data', onData);
-  connection.on('close', () => { appendSys('Connection ended 😔'); setStatus('Disconnected'); updateUI(false); conn = null; peerProfile = { name: 'Not connected', avatar: 'https://picsum.photos/seed/placeholder/96' }; updateContactStrip(); });
-  connection.on('error', () => { appendSys('Connection error occurred 🤬'); setStatus('Error','error'); updateUI(false); conn = null; });
+  connection.on('close', () => { 
+    appendSys(`${peerProfile.name || 'Peer'} disconnected �`); 
+    setStatus('Disconnected', 'error'); 
+    updateUI(false); 
+    conn = null; 
+    peerProfile = { name: 'Not connected', avatar: 'https://picsum.photos/seed/placeholder/96' }; 
+    updateContactStrip(); 
+  });
+  connection.on('error', () => { 
+    appendSys('Connection error occurred 🤬'); 
+    setStatus('Error','error'); 
+    updateUI(false); 
+    conn = null; 
+  });
   if (!isHost && connection.open) { appendSys('Successfully connected ✨'); setStatus('Connected','connected'); updateUI(true); }
 }
 
@@ -1445,6 +2163,7 @@ function handleFileStart(msg) {
     totalChunks: msg.chunks,
     username: msg.username, 
     timestamp: msg.timestamp,
+    transcript: msg.transcript || '',
     dataUrlPrefix: msg.dataUrlPrefix, // Store data URL prefix for reconstruction
     progressElement: createFileTransferProgress(transferId, msg.name, msg.size)
   };
@@ -1464,7 +2183,8 @@ function handleFileComplete(msg) {
       false,
       msg.username,
       msg.timestamp,
-      msg.mimeType
+      msg.mimeType,
+      msg.transcript || ''
     );
     
     console.log('Small file received and displayed successfully');
@@ -1542,7 +2262,8 @@ function handleFileEnd(msg) {
       false,
       incomingFile.username,
       incomingFile.timestamp,
-      incomingFile.type
+      incomingFile.type,
+      incomingFile.transcript || ''
     );
     
     console.log('File transfer completed successfully');
@@ -1593,7 +2314,7 @@ async function sendFile(file) {
     console.log('File read as Data URL, length:', fileDataUrl.length);
     
     // Create local preview
-    appendFile(file.name, file.size, fileDataUrl, true, currentUsername, null, file.type);
+    appendFile(file.name, file.size, fileDataUrl, true, currentUsername, null, file.type, file.transcript);
     console.log('Local preview appended to chat');
     
     // Send file data in a single message for smaller files (< 1MB)
@@ -1604,6 +2325,7 @@ async function sendFile(file) {
         mimeType: file.type || getMimeType(file.name),
         size: file.size,
         data: fileDataUrl,
+        transcript: file.transcript || '',
         username: currentUsername,
         timestamp: getTimestamp()
       }));
@@ -1623,6 +2345,7 @@ async function sendFile(file) {
       mimeType: file.type || getMimeType(file.name),
       size: file.size,
       chunks: chunks,
+      transcript: file.transcript || '',
       dataUrlPrefix: fileDataUrl.split(',')[0] + ',', // Send the data URL prefix for reconstruction
       username: currentUsername,
       timestamp: getTimestamp()
@@ -1696,6 +2419,10 @@ $('fileInput').onchange = (e) => {
   if (file) sendFile(file); 
   e.target.value = ''; 
 };
+
+// Voice handlers
+$('voiceBtn').onclick = toggleVoiceDictation;
+$('voiceMemoBtn').onclick = startVoiceMemo;
 
 // File drag & drop handlers
 let dragCounter = 0;
@@ -1917,6 +2644,10 @@ updateUI(false);
 appendSys('Welcome to Whispy!');
 usernameInput.focus();
 usernameInput.select();
+
+// Initialize voice features
+checkMicrophonePermission();
+initSpeechRecognition();
 
 </script>
 <style>
@@ -2395,6 +3126,14 @@ function hideFAQ() {
   document.getElementById('faqOverlay').classList.remove('show');
   document.body.style.overflow = '';
 }
+
+// Cleanup microphone stream when page unloads
+window.addEventListener('beforeunload', () => {
+  if (microphoneStream) {
+    microphoneStream.getTracks().forEach(track => track.stop());
+    microphoneStream = null;
+  }
+});
 </script>
 </body>
 </html>
