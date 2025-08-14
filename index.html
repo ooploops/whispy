@@ -131,11 +131,15 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       flex-direction: column;
       align-items: center;
       gap: 4px;
+      max-width: 100%;
+      width: 100%;
+      padding: 0 10px;
     }
     .contact-meta {
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
     }
     .contact-name-wrap {
       display: flex;
@@ -143,10 +147,27 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
       gap: 7px;
       font-size: 14px;
       font-weight: 700;
+      max-width: 100%;
+      width: 100%;
+      justify-content: center;
     }
     .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-medium); }
     /* .contact-info { display:flex; flex-direction:column; min-width: 0; } -- replaced by .contact-info-centered */
-    .contact-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-name { 
+      font-size: 14px; 
+      font-weight: 700; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis;
+      max-width: 200px;
+      text-align: center;
+    }
+    @media (max-width: 520px) {
+      .contact-name {
+        font-size: 13px;
+        max-width: 160px;
+      }
+    }
     /* .contact-status { font-size: 11px; color: var(--text-tertiary); } -- removed */
 
     /* LAYOUT */
@@ -213,9 +234,24 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, var(--accent-blue-hover), #0f2e8a); box-shadow: var(--shadow-md); }
 
     .actions { display:flex; gap:8px; flex-wrap: wrap; }
-    .status-badge { padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .3px; background: var(--bg-tertiary); color: var(--text-tertiary); border:1px solid var(--border-subtle); }
+    .status-badge { 
+      padding: 6px 10px; 
+      border-radius: 999px; 
+      font-size: 11px; 
+      font-weight: 700; 
+      letter-spacing: .3px; 
+      background: var(--bg-tertiary); 
+      color: var(--text-tertiary); 
+      border:1px solid var(--border-subtle);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+    }
     .status-badge.connected { background: color-mix(in oklab, var(--accent-green) 15%, transparent); color: var(--accent-green); border-color: color-mix(in oklab, var(--accent-green) 30%, transparent); }
     .status-badge.error { background: color-mix(in oklab, var(--accent-red) 15%, transparent); color: var(--accent-red); border-color: color-mix(in oklab, var(--accent-red) 30%, transparent); }
+    .status-badge.peer { background: color-mix(in oklab, var(--accent-blue) 15%, transparent); color: var(--accent-blue); border-color: color-mix(in oklab, var(--accent-blue) 30%, transparent); }
 
     /* CHAT */
     .chat {
@@ -1244,7 +1280,11 @@ const PEER_CONF = {
 function createPeer(id) {
   if (peer) { try { peer.destroy(); } catch{}; peer = null; }
   peer = new Peer(id, PEER_CONF);
-  peer.on('open', (peerId) => { debugInfo.textContent = `Peer: ${peerId}`; });
+  peer.on('open', (peerId) => { 
+    debugInfo.textContent = `Peer: ${peerProfile.name || 'Anonymous'}`;
+    debugInfo.classList.add('peer');
+    debugInfo.title = `Peer ID: ${peerId}`;
+  });
   peer.on('error', (err) => { console.error('Peer error:', err); appendSys('⚠️ ' + (err.message || err.type || 'Peer error')); setStatus('Error', 'error'); updateUI(false); });
   peer.on('connection', (connection) => { if (conn) { connection.close(); return; } handleConnection(connection); });
   peer.on('disconnected', () => { setStatus('Disconnected'); updateUI(false); });
@@ -1375,7 +1415,11 @@ function handleProfile(msg) {
     }
     peerProfile.avatar = `https://picsum.photos/seed/${encodeURIComponent(peerProfile._seed)}/96`;
   }
+  // Update both contact strip and peer badge
   updateContactStrip();
+  if (debugInfo) {
+    debugInfo.textContent = `Peer: ${peerProfile.name || 'Anonymous'}`;
+  }
 }
 
 function handleFileStart(msg) {
