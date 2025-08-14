@@ -13,7 +13,7 @@ A minimalist peer-to-peer chat application focused on privacy and simplicity. Bu
 
 ## Getting Started
 
-1. Visit [whispy.chat](https://ooploops.github.io/whispy/)
+1. Visit [whispy](https://ooploops.github.io/whispy/)
 2. Click "Start Chatting"
 3. Create a new room or join an existing one
 4. Share your room link with someone to start chatting
