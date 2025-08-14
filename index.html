@@ -1565,6 +1565,7 @@ function sendText() {
   conn.send(JSON.stringify({ type:'text', text, username: currentUsername, timestamp: getTimestamp(), avatar: myAvatarUrl }));
   appendMsg(text, true, currentUsername, null, myAvatarUrl);
   textInput.value = ''; textInput.style.height = 'auto';
+  maintainScroll();
 }
 
 async function sendFile(file) {
@@ -1867,6 +1868,49 @@ document.getElementById('stepperNext').addEventListener('click', async () => {
     showToast('Room link copied to clipboard! Share it to start chatting.');
   }
 });
+
+// Handle mobile keyboard show/hide
+let keyboardVisible = false;
+let lastScrollPosition = 0;
+
+// Detect when virtual keyboard is shown
+textInput.addEventListener('focus', () => {
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    keyboardVisible = true;
+    lastScrollPosition = window.scrollY;
+    // Small delay to let keyboard appear
+    setTimeout(() => {
+      // Scroll the input into view
+      textInput.scrollIntoView({ behavior: 'smooth' });
+      // Additional scroll to ensure it's above keyboard
+      window.scrollTo(0, window.scrollY + 100);
+    }, 300);
+  }
+});
+
+// Detect when virtual keyboard is hidden
+textInput.addEventListener('blur', () => {
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    keyboardVisible = false;
+    // Reset scroll position when keyboard hides
+    setTimeout(() => {
+      window.scrollTo(0, lastScrollPosition);
+      // Ensure messages are scrolled to bottom
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, 100);
+  }
+});
+
+// After sending a message, maintain proper scroll position
+function maintainScroll() {
+  if (keyboardVisible) {
+    setTimeout(() => {
+      textInput.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  } else {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+}
 
 // Initialize
 updateUI(false);
