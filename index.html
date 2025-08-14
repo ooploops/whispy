@@ -87,19 +87,32 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     .logo-text { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* Connectivity dot */
     .conn-dot {
-      width: 10px;
-      height: 10px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
-      margin-left: 6px;
-      margin-right: 0;
-      box-shadow: none;
-      display: inline-block;
-      vertical-align: middle;
+      position: absolute;
+      top: 0;
+      right: 0;
+      transform: translate(5%, -5%);
       transition: background 0.2s;
-      border: none;
+      border: 3px solid var(--bg-secondary);
+      z-index: 5;
     }
-    .conn-dot.connected { background: var(--accent-green); }
-    .conn-dot.disconnected { background: var(--accent-red); }
+    .conn-dot.connected { 
+      background: var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+    .conn-dot.disconnected { 
+      background: var(--accent-red);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(var(--dot-color, 16, 185, 129), 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(var(--dot-color, 16, 185, 129), 0); }
+      100% { box-shadow: 0 0 0 0 rgba(var(--dot-color, 16, 185, 129), 0); }
+    }
+    .conn-dot.connected { --dot-color: 16, 185, 129; }
+    .conn-dot.disconnected { --dot-color: 239, 68, 68; }
 
     .header-actions { display:flex; align-items:center; gap:8px; }
     .icon-btn { width: 38px; height: 38px; display:grid; place-items:center; padding: 0; background: var(--bg-elevated); border: 1px solid var(--border-medium); color: var(--text-primary); border-radius: var(--radius); font-weight:600; cursor:pointer; }
@@ -483,22 +496,19 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
   <div class="homepage-content stepper">
     <button class="stepper-close" id="stepperClose" title="Close" style="display:none">×</button>
     <div class="homepage-logo">💬</div>
-    <h1>Whispy Chat</h1>
-    <p class="homepage-lead">A minimalist peer-to-peer chat application focused on privacy and simplicity.</p>
+    <h1>Whispy</h1>
+    <p class="homepage-lead">Truly private messaging & media</p>
     <ul class="homepage-features">
       <li>
-        <span>🔒</span>
-        <strong>End-to-End Private</strong>
-        <p>Direct peer-to-peer connections with no server in between.</p>
+        <strong>Totally Private 🔒</strong>
+        <p>Direct encrypted messaging with no sneaky servers.</p>
       </li>
       <li>
-        <span>⚡️</span>
-        <strong>Instant Setup</strong>
-        <p>No registration or installation required. Start chatting immediately.</p>
+        <strong>Instant Setup ⚡️</strong>
+        <p>No login or account required. Start chatting immediately.</p>
       </li>
       <li>
-        <span>📱</span>
-        <strong>Cross Platform</strong>
+        <strong>Cross Platform 📱</strong>
         <p>Works on any device with a modern web browser.</p>
       </li>
     </ul>
@@ -511,6 +521,7 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
         <button onclick="showTerms()" class="footer-link">Terms of Service</button>
         <span class="footer-dot">•</span>
         <button onclick="showFAQ()" class="footer-link">FAQ</button>
+        
         
       </div>
       <a href="https://buymeacoffee.com/whispy" target="_blank" rel="noopener" class="footer-link">☕️ Buy me a coffee</a>
@@ -680,12 +691,12 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     <!-- Redesigned contact bar: stacked, centered, dot next to name -->
     <div class="contact-bar">
       <div class="contact-info-centered">
-        <img id="contactAvatar" class="avatar" alt="Contact avatar" src="https://picsum.photos/seed/placeholder/96" />
+        <div style="position: relative;">
+          <img id="contactAvatar" class="avatar" alt="Contact avatar" src="https://picsum.photos/seed/placeholder/96" />
+          <span id="connDot" class="conn-dot disconnected" title="Connection status"></span>
+        </div>
         <div class="contact-meta">
-          <span class="contact-name-wrap">
-            <span id="contactName" class="contact-name">Connecting</span>
-            <span id="connDot" class="conn-dot disconnected" title="Connection status"></span>
-          </span>
+          <span id="contactName" class="contact-name">Connecting</span>
         </div>
       </div>
     </div>
@@ -715,19 +726,13 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
         </div>
 
         <div class="card field">
-          <label for="roomCode">Room code</label>
-          <input id="roomCode" class="room-input" placeholder="Room code…" />
+          <label for="roomCode">Room link</label>
+          <input id="roomCode" class="room-input" placeholder="Generating room link..." readonly />
           <div class="actions">
-            <button id="createBtn" class="btn btn-primary" title="Create room">✨ <span>Create</span></button>
-            <button id="joinBtn" class="btn" title="Join room">🔗 <span>Join</span></button>
+            <button id="createBtn" class="btn btn-primary" title="Create new room">✨ <span>New Room</span></button>
+            <button id="copyLink" class="btn" title="Copy room link">� Copy</button>
           </div>
-        </div>
-
-        <div class="card field">
-          <label for="linkOut">Share link</label>
-          <input id="linkOut" class="link-output" placeholder="Share link will appear here" readonly />
-          <div class="actions">
-            <button id="copyLink" class="btn" title="Copy link">📋 Copy</button>
+          <div style="margin-top: 8px;">
             <span id="status" class="status-badge" title="Connection status">Disconnected</span>
             <span id="debugInfo" class="status-badge" title="Peer info">Peer: —</span>
           </div>
@@ -763,7 +768,11 @@ body { margin: 0; height: 100%; min-height: 100%; font-family: 'Cal Sans', -appl
     <div class="invite-logo">💬</div>
     <h2 id="inviteTitle">You've been invited!</h2>
     <div id="inviteHost" class="invite-host">Room by <span id="inviteHostName">Anonymous</span></div>
-    <button id="inviteStartBtn" class="homepage-btn">Start Chatting</button>
+    <div class="field" style="width: 100%; margin-top: 8px;">
+      <label for="inviteNameInput">What's your name?</label>
+      <input id="inviteNameInput" class="username-input" placeholder="Enter your name..." value="${currentUsername}" style="margin: 8px 0;"/>
+    </div>
+    <button id="inviteStartBtn" class="homepage-btn">Join Chat</button>
   </div>
 </div>
 
@@ -862,8 +871,16 @@ usernameInput.addEventListener('input', (e) => {
 });
 
 function setStatus(txt, type = 'default') {
-  statusEl.textContent = txt;
+  // Simplify status text if it contains connection info
+  let displayText = txt;
+  if (txt.includes('Connecting')) displayText = 'Connecting...';
+  else if (txt.includes('Connected')) displayText = peerProfile.name || 'Connected';
+  else if (txt.includes('Waiting')) displayText = 'Waiting for peer...';
+  else if (txt === 'Hosting…') displayText = 'Creating room...';
+  
+  statusEl.textContent = displayText;
   statusEl.className = 'status-badge' + (type !== 'default' ? ' ' + type : '');
+
   // Update header dot
   if (connDot) {
     if (type === 'connected') {
@@ -877,7 +894,7 @@ function setStatus(txt, type = 'default') {
     } else {
       connDot.classList.remove('connected');
       connDot.classList.add('disconnected');
-      connDot.title = 'Disconnected';
+      connDot.title = 'Connecting...';
     }
   }
   updateContactStrip();
@@ -1174,15 +1191,37 @@ function copy(text) {
       btn.style.background = 'var(--accent-green)';
       btn.style.color = 'white';
       setTimeout(() => { btn.innerHTML = '📋 Copy'; btn.style.background=''; btn.style.color=''; }, 1100);
-    }).catch(() => { appendSys('Failed to copy link'); });
+    }).catch(() => { appendSys('Failed to copy link 🤮'); });
   }
 }
 
 function randCode() {
-  const adjectives = ['quantum','neural','cosmic','digital','cyber','nexus','matrix','pulse','flux','zen'];
-  const nouns = ['falcon','phoenix','cipher','prism','vector','orbit','spark','wave','node','core'];
-  const num = Math.floor(Math.random() * 9000) + 1000;
-  return `${adjectives[Math.floor(Math.random()*adjectives.length)]}-${nouns[Math.floor(Math.random()*nouns.length)]}-${num}`;
+  const adjectives = [
+    'quantum', 'neural', 'cosmic', 'digital', 'cyber', 'nexus', 'matrix', 'pulse', 'flux', 'zen',
+    'stellar', 'nova', 'hyper', 'crystal', 'nebula', 'photon', 'quartz', 'astral', 'lunar', 'solar',
+    'atomic', 'binary', 'plasma', 'void', 'echo', 'fusion', 'quasar', 'vortex', 'storm', 'frost',
+    'sonic', 'chrome', 'azure', 'onyx', 'jade', 'ember', 'neon', 'aether', 'terra', 'apex'
+  ];
+  
+  const nouns = [
+    'falcon', 'phoenix', 'cipher', 'prism', 'vector', 'orbit', 'spark', 'wave', 'node', 'core',
+    'dragon', 'titan', 'beacon', 'pulse', 'nexus', 'atlas', 'zenith', 'omega', 'sigma', 'delta',
+    'horizon', 'mystic', 'summit', 'aurora', 'vertex', 'phantom', 'legacy', 'oracle', 'eclipse', 'nova',
+    'shadow', 'spectre', 'spirit', 'nebula', 'portal', 'vision', 'prime', 'drift', 'dawn', 'dusk'
+  ];
+
+  // Generate a 6-digit number instead of 4
+  const num = Math.floor(Math.random() * 900000) + 100000;
+  
+  // Add a second adjective for more uniqueness
+  const adj1 = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const adj2 = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  
+  // Add timestamp to ensure uniqueness even with same words
+  const timestamp = Date.now().toString(36).slice(-3);
+  
+  return `${adj1}-${adj2}-${noun}-${num}-${timestamp}`;
 }
 
 function updateUI(connected) {
@@ -1224,17 +1263,22 @@ function hostRoom(code) {
   
   createPeer(code);
   const link = `${location.origin}${location.pathname}#${encodeURIComponent(code)}`;
-  linkOut.value = link;
-  roomInput.value = code;
+  roomInput.value = link;
   history.replaceState(null, '', `#${encodeURIComponent(code)}`);
   copy(link);
   
   // Update the invite overlay with current username
   inviteHostName.textContent = currentUsername;
   
-  appendSys('Room created! Share your link: ' + code);
-  setStatus('Waiting for guest');
+  // Show more prominent clipboard notification
+  showToast('Room link copied! Share it to start chatting', 4000);
+  
+  appendSys('Room created! Share it to start chatting');
+  setStatus('Waiting');
   updateUI(false);
+  
+  // Ensure sidebar is closed by default
+  setSidebar(false);
 }
 
 function joinRoom(code) {
@@ -1252,12 +1296,12 @@ function handleConnection(connection) {
   conn = connection;
   connection.on('open', () => {
     if (isHost) {
-      appendSys('User joined the room');
+      appendSys('User joined the room 👀');
       // Update host profile in local UI immediately
       peerProfile = { name: currentUsername, avatar: myAvatarUrl };
       updateContactStrip();
     } else {
-      appendSys('Successfully connected');
+      appendSys('Successfully connected 🤩');
     }
     setStatus('Connected','connected');
     updateUI(true);
@@ -1271,9 +1315,9 @@ function handleConnection(connection) {
     } catch{}
   });
   connection.on('data', onData);
-  connection.on('close', () => { appendSys('Connection ended'); setStatus('Disconnected'); updateUI(false); conn = null; peerProfile = { name: 'Not connected', avatar: 'https://picsum.photos/seed/placeholder/96' }; updateContactStrip(); });
-  connection.on('error', () => { appendSys('Connection error occurred'); setStatus('Error','error'); updateUI(false); conn = null; });
-  if (!isHost && connection.open) { appendSys('Successfully connected'); setStatus('Connected','connected'); updateUI(true); }
+  connection.on('close', () => { appendSys('Connection ended 😔'); setStatus('Disconnected'); updateUI(false); conn = null; peerProfile = { name: 'Not connected', avatar: 'https://picsum.photos/seed/placeholder/96' }; updateContactStrip(); });
+  connection.on('error', () => { appendSys('Connection error occurred 🤬'); setStatus('Error','error'); updateUI(false); conn = null; });
+  if (!isHost && connection.open) { appendSys('Successfully connected ✨'); setStatus('Connected','connected'); updateUI(true); }
 }
 
 // ---- Messaging protocol ----
@@ -1585,9 +1629,18 @@ async function sendFile(file) {
 }
 
 // ---- Event Handlers ----
-$('createBtn').onclick = () => { const code = roomInput.value.trim() || randCode(); hostRoom(code); };
-$('joinBtn').onclick = () => { const code = roomInput.value.trim() || (location.hash ? decodeURIComponent(location.hash.slice(1)) : ''); if (!code) { appendSys('Please enter a room code or use a valid link'); return; } joinRoom(code); };
-$('copyLink').onclick = () => { const code = roomInput.value.trim() || (location.hash ? decodeURIComponent(location.hash.slice(1)) : randCode()); const link = `${location.origin}${location.pathname}#${encodeURIComponent(code)}`; copy(link); linkOut.value = link; };
+$('createBtn').onclick = () => { 
+  const code = randCode();
+  hostRoom(code);
+};
+
+$('copyLink').onclick = () => {
+  const link = roomInput.value;
+  if (link && !link.includes('Generating')) {
+    copy(link);
+    showToast('Room link copied! Share it to start chatting', 3000);
+  }
+};
 $('sendBtn').onclick = sendText;
 textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); } });
 
@@ -1640,8 +1693,9 @@ window.addEventListener('load', () => {
 
   const code = location.hash ? decodeURIComponent(location.hash.slice(1)) : '';
   if (code) {
-    roomInput.value = code;
-    appendSys(`Detected room link: ${code}`);
+    const fullLink = `${location.origin}${location.pathname}#${code}`;
+    roomInput.value = fullLink;
+    appendSys('Welcome to the chat room');
     
     // If joining via link, show invite overlay before joining
     setTimeout(() => {
@@ -1674,11 +1728,33 @@ let inviteHost = 'Anonymous';
 function showInviteOverlay(hostName) {
   inviteHostName.textContent = hostName || 'Anonymous';
   inviteOverlay.classList.remove('hidden');
+  
+  // Focus the name input
+  const nameInput = document.getElementById('inviteNameInput');
+  if (nameInput) {
+    nameInput.focus();
+    nameInput.select();
+    
+    // Handle enter key
+    nameInput.onkeypress = (e) => {
+      if (e.key === 'Enter') inviteStartBtn.click();
+    };
+  }
 }
+
 function hideInviteOverlay() {
   inviteOverlay.classList.add('hidden');
 }
+
 inviteStartBtn.addEventListener('click', () => {
+  const nameInput = document.getElementById('inviteNameInput');
+  const name = nameInput.value.trim() || 'Anonymous';
+  
+  // Update username everywhere
+  currentUsername = name;
+  usernameInput.value = name;
+  meName.textContent = name;
+  
   hideInviteOverlay();
   document.getElementById('homepage').style.display = 'none';
   document.getElementById('appMain').style.display = '';
@@ -1692,8 +1768,51 @@ function showToast(message, duration = 3000) {
   setTimeout(() => toast.classList.remove('show'), duration);
 }
 
+// Name Input Modal
+const nameModal = {
+  show() {
+    const modal = document.createElement('div');
+    modal.className = 'invite-overlay';
+    modal.style.zIndex = '3000';
+    modal.innerHTML = `
+      <div class="invite-content">
+        <div class="invite-logo">👋</div>
+        <h2 style="margin: 0; font-size: 1.5rem;">Welcome to Whispy</h2>
+        <div class="field" style="width: 100%;">
+          <label for="nameInput">What's your name?</label>
+          <input id="nameInput" class="username-input" placeholder="Enter your name..." value="${currentUsername}" autofocus style="margin: 8px 0;"/>
+        </div>
+        <button class="homepage-btn" id="nameSubmitBtn">Continue</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const nameInput = modal.querySelector('#nameInput');
+    const submitBtn = modal.querySelector('#nameSubmitBtn');
+    
+    return new Promise(resolve => {
+      submitBtn.onclick = () => {
+        const name = nameInput.value.trim() || 'Anonymous';
+        modal.remove();
+        resolve(name);
+      };
+      nameInput.onkeypress = (e) => {
+        if (e.key === 'Enter') submitBtn.click();
+      };
+      nameInput.focus();
+      nameInput.select();
+    });
+  }
+};
+
 // Handle landing page start button
-document.getElementById('stepperNext').addEventListener('click', () => {
+document.getElementById('stepperNext').addEventListener('click', async () => {
+  // First get the user's name
+  const name = await nameModal.show();
+  currentUsername = name;
+  usernameInput.value = name;
+  meName.textContent = name;
+  
   document.getElementById('homepage').style.display = 'none';
   document.getElementById('appMain').style.display = '';
   
@@ -1701,7 +1820,7 @@ document.getElementById('stepperNext').addEventListener('click', () => {
   if (!location.hash) {
     const code = randCode();
     hostRoom(code);
-    showToast('Room code copied to clipboard');
+    showToast('Room link copied to clipboard! Share it to start chatting.');
   }
 });
 
@@ -2053,6 +2172,7 @@ usernameInput.select();
   text-align: center;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-subtle);
+  font-size: 0.6rem;
 }
 
 .bmc-link {
@@ -2074,7 +2194,7 @@ usernameInput.select();
   background: none;
   border: none;
   color: #666666;
-  font-size: 0.875rem;
+  font-size: 0.6rem;
   cursor: pointer;
   padding: 4px 8px;
   transition: color 0.2s ease;
