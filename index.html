@@ -1336,7 +1336,7 @@ function handleConnection(connection) {
   conn = connection;
   connection.on('open', () => {
     if (isHost) {
-      appendSys('User joined the room 👀');
+      appendSys('Someone joined the room 👀');
       // Update host profile in local UI immediately
       peerProfile = { name: currentUsername, avatar: myAvatarUrl };
       updateContactStrip();
